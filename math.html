@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Math practice games for kindergarten through grade 4, organized by level and skill.">
+<title>Math Games | Miss Y's Reading and Math Education</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A2%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<script src="filters.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">Y</span>Miss Y's Reading &amp; Math</a>
+    <a class="back" href="index.html"><span aria-hidden="true">←</span> Home</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="page-head">
+    <h1>🔢 Math Games</h1>
+    <p>Start at Level 1 and move up. Each game shows a picture model when you make a mistake, then helps you fix it.</p>
+    <div class="filters" role="group" aria-label="Show games by skill">
+      <button type="button" data-filter="all" aria-pressed="true">All skills</button>
+      <button type="button" data-filter="counting" aria-pressed="false">Counting</button>
+      <button type="button" data-filter="bonds" aria-pressed="false">Number bonds</button>
+      <button type="button" data-filter="place" aria-pressed="false">Place value</button>
+      <button type="button" data-filter="adding" aria-pressed="false">Adding</button>
+    </div>
+  </section>
+
+  <section class="level lv1" aria-labelledby="lv1">
+    <div class="level-head"><span class="level-tag" aria-hidden="true">1</span><h2 id="lv1">Level 1: Getting started</h2><span class="grade">Kindergarten</span></div>
+    <ul class="games">
+      <li data-skill="counting"><a class="game" href="games/count-to-10.html">
+        <div class="top"><span class="emoji" aria-hidden="true">🍎</span><h3>Count and Match to 10</h3></div>
+        <p>Count the pictures and tap the number.</p>
+        <span class="meta"><span class="chip">Grade K</span><span class="chip skill">Counting</span><span class="chip stars" role="img" aria-label="Difficulty 1 of 5">★</span></span>
+      </a></li>
+      <li data-skill="counting"><a class="game" href="games/ten-frame-subitizing.html">
+        <div class="top"><span class="emoji" aria-hidden="true">👀</span><h3>Quick Look</h3></div>
+        <p>How many dots? See it on a ten-frame without counting.</p>
+        <span class="meta"><span class="chip">Grades K–1</span><span class="chip skill">Counting</span><span class="chip stars" role="img" aria-label="Difficulty 2 of 5">★★</span></span>
+      </a></li>
+      <li data-skill="bonds"><a class="game" href="games/make-5-number-bonds.html">
+        <div class="top"><span class="emoji" aria-hidden="true">🖐️</span><h3>Make 5</h3></div>
+        <p>Find the missing part of 5.</p>
+        <span class="meta"><span class="chip">Grades K–1</span><span class="chip skill">Number bonds</span><span class="chip stars" role="img" aria-label="Difficulty 2 of 5">★★</span></span>
+      </a></li>
+    </ul>
+  </section>
+
+  <section class="level lv2" aria-labelledby="lv2">
+    <div class="level-head"><span class="level-tag" aria-hidden="true">2</span><h2 id="lv2">Level 2: Building up</h2><span class="grade">Grade 1</span></div>
+    <ul class="games">
+      <li data-skill="counting"><a class="game" href="games/count-to-20.html">
+        <div class="top"><span class="emoji" aria-hidden="true">🧮</span><h3>Count and Match to 20</h3></div>
+        <p>Count in two ten-frames: a full frame is 10, then count on.</p>
+        <span class="meta"><span class="chip">Grades K–1</span><span class="chip skill">Counting</span><span class="chip stars" role="img" aria-label="Difficulty 2 of 5">★★</span></span>
+      </a></li>
+      <li data-skill="bonds"><a class="game" href="games/make-10-number-bonds.html">
+        <div class="top"><span class="emoji" aria-hidden="true">🔟</span><h3>Make 10</h3></div>
+        <p>Find the missing part of 10.</p>
+        <span class="meta"><span class="chip">Grade 1</span><span class="chip skill">Number bonds</span><span class="chip stars" role="img" aria-label="Difficulty 3 of 5">★★★</span></span>
+      </a></li>
+      <li data-skill="place"><a class="game" href="games/numbers-to-120.html">
+        <div class="top"><span class="emoji" aria-hidden="true">🧱</span><h3>Number Builders to 120</h3></div>
+        <p>Write numbers, read blocks, and fill in what comes next.</p>
+        <span class="meta"><span class="chip">Grades 1–2</span><span class="chip skill">Place value</span><span class="chip stars" role="img" aria-label="Difficulty 3 of 5">★★★</span></span>
+      </a></li>
+    </ul>
+  </section>
+
+  <section class="level lv3" aria-labelledby="lv3">
+    <div class="level-head"><span class="level-tag" aria-hidden="true">3</span><h2 id="lv3">Level 3: Big numbers</h2><span class="grade">Grades 2–4</span></div>
+    <ul class="games">
+      <li data-skill="place"><a class="game" href="games/count-by-10s-and-100s.html">
+        <div class="top"><span class="emoji" aria-hidden="true">🦘</span><h3>Pattern Jumps</h3></div>
+        <p>Count by 10s and 100s within 1,000.</p>
+        <span class="meta"><span class="chip">Grades 2–3</span><span class="chip skill">Place value</span><span class="chip stars" role="img" aria-label="Difficulty 4 of 5">★★★★</span></span>
+      </a></li>
+      <li data-skill="adding"><a class="game" href="games/add-within-1000.html">
+        <div class="top"><span class="emoji" aria-hidden="true">➕</span><h3>Add It Up</h3></div>
+        <p>Add within 1,000 with regrouping.</p>
+        <span class="meta"><span class="chip">Grades 2–4</span><span class="chip skill">Adding</span><span class="chip stars" role="img" aria-label="Difficulty 5 of 5">★★★★★</span></span>
+      </a></li>
+    </ul>
+  </section>
+</main>
+
+<footer class="footer">© 2026 Miss Y's Reading and Math Education. All rights reserved.</footer>
+</body>
+</html>

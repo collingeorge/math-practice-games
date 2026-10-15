@@ -1,0 +1,15 @@
+{
+  "name": "math-practice-games",
+  "version": "1.0.0",
+  "description": "Standalone HTML math practice games with corrective feedback for K-4 math intervention.",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "npx --yes http-server . -p 8080 -c-1",
+    "test": "node scripts/check.js",
+    "lint:html": "npx --yes html-validate \"*.html\" \"games/*.html\""
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
