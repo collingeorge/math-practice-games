@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pattern Jumps: Counting by 10s and 100s</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #DDF1FA; --card: #FFFFFF; --ink: #1F2A44; --soft-ink: #4A5878;
+    --sun: #FFC93C; --grape: #6C4AB6; --grape-ink: #FFFFFF;
+    --leaf: #1E7A43; --leaf-bg: #DDF5E6; --berry: #C13560; --berry-bg: #FCE3EA;
+    --dot: #B9D7E6; --btn: #FFFFFF; --btn-border: #1F2A44;
+    --th-col: #F3E8FF; --h-col: #E3F1FB; --t-col: #E2F6E9; --o-col: #FFEEDF;
+    --change: #6C4AB6;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+      --grape: #A98BF0; --grape-ink: #14213A;
+      --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+      --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+      --th-col: #2C2550; --h-col: #1B3552; --t-col: #1B3D33; --o-col: #3D2E22;
+      --change: #C9B4FF;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+    --grape: #A98BF0; --grape-ink: #14213A;
+    --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+    --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+    --th-col: #2C2550; --h-col: #1B3552; --t-col: #1B3D33; --o-col: #3D2E22;
+    --change: #C9B4FF;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%; background: var(--sky); color: var(--ink);
+    font-family: "Andika", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 820px; padding: 16px 14px 32px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  h1 { font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0; }
+  .tools { display: flex; gap: 8px; align-items: center; }
+  .streak { font-weight: 700; font-size: 1.05rem; }
+  .pill {
+    font: inherit; font-size: 1rem; background: var(--btn); color: var(--ink);
+    border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+
+  .track { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .track span { width: 13px; height: 13px; border-radius: 50%; background: var(--dot); }
+  .track span.done { background: var(--leaf); }
+  .track span.retry { background: var(--sun); }
+  .track span.now { outline: 3px solid var(--grape); outline-offset: 1px; }
+
+  .card { background: var(--card); border-radius: 26px; padding: 18px 12px 20px; }
+  .prompt { font-size: clamp(1.25rem, 4.6vw, 1.7rem); text-align: center; margin: 0 0 4px; }
+  .rule { text-align: center; font-size: 1.15rem; color: var(--soft-ink); min-height: 1.5em; margin: 0 0 10px; font-weight: 700; }
+
+  /* the pattern */
+  .seq { display: flex; justify-content: center; align-items: center; gap: 2px; flex-wrap: wrap; row-gap: 10px; }
+  .seq-cell {
+    min-width: 3ch; padding: 4px 4px; text-align: center; font-weight: 700;
+    font-size: clamp(1.05rem, 4.6vw, 2.5rem); line-height: 1.2;
+    border: 3px solid var(--btn-border); border-radius: 14px; background: var(--btn);
+  }
+  .seq-cell.blank { border-style: dashed; color: var(--soft-ink); }
+  .seq-cell.active { border-color: var(--grape); box-shadow: 0 0 0 4px var(--grape); color: var(--ink); }
+  .seq-cell.filled { border-style: solid; border-color: var(--leaf); background: var(--leaf-bg); color: var(--leaf); }
+  .seq-cell .chg { color: var(--change); text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
+  .joint { font-weight: 700; font-size: clamp(.9rem, 3.6vw, 1.4rem); color: var(--soft-ink); min-width: .5em; text-align: center; }
+  .joint.jump { color: var(--grape); font-size: clamp(.85rem, 3.2vw, 1.1rem); }
+
+  /* keypad */
+  .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 460px; margin: 18px auto 0; }
+  .key {
+    font: inherit; font-weight: 700; font-size: clamp(1.6rem, 7vw, 2.2rem);
+    background: var(--btn); color: var(--ink); border: 3px solid var(--btn-border);
+    border-radius: 16px; padding: 8px 0; cursor: pointer;
+  }
+  .key.wide { grid-column: span 2; font-size: 1.3rem; }
+  .key.go { grid-column: span 3; background: var(--grape); color: var(--grape-ink); border-color: var(--grape); font-size: 1.4rem; }
+  .eraser { width: 1.7em; height: 1.1em; vertical-align: middle; margin-right: 4px; }
+  button:disabled { cursor: default; opacity: .6; }
+  button:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+
+  /* corrective feedback: before/after place-value chart */
+  .fix { margin-top: 16px; padding: 14px 10px; border-radius: 20px; border: 3px dashed var(--sun); }
+  .fix-text { font-size: clamp(1.1rem, 4vw, 1.3rem); text-align: center; margin: 0 0 12px; }
+  .pv { display: grid; gap: 6px; max-width: 520px; margin: 0 auto; align-items: center; }
+  .pv .hd { text-align: center; font-weight: 700; font-size: .95rem; border-radius: 12px 12px 0 0; padding: 6px 2px; }
+  .pv .c { text-align: center; font-weight: 700; font-size: clamp(1.9rem, 8vw, 2.6rem); padding: 4px 0; border-radius: 10px; border: 3px solid transparent; }
+  .pv .th { background: var(--th-col); } .pv .h { background: var(--h-col); } .pv .t { background: var(--t-col); } .pv .o { background: var(--o-col); }
+  .pv .c.lit { border-color: var(--change); color: var(--change); }
+  .pv .lbl { font-size: 1rem; color: var(--soft-ink); text-align: right; padding-right: 4px; }
+  .pv .jumpRow { grid-column: 1 / -1; text-align: center; font-weight: 700; color: var(--grape); font-size: 1.15rem; }
+
+  .feedback { min-height: 1.6em; margin-top: 14px; text-align: center; font-size: clamp(1.15rem, 4vw, 1.4rem); }
+  .feedback.good { color: var(--leaf); font-weight: 700; }
+  .feedback.try { color: var(--berry); }
+  .next {
+    font: inherit; font-weight: 700; font-size: 1.4rem; display: block; margin: 10px auto 0;
+    background: var(--grape); color: var(--grape-ink); border: none; border-radius: 999px; padding: 12px 36px; cursor: pointer;
+  }
+  .hidden { display: none !important; }
+  .end { text-align: center; padding: 30px 10px; }
+  .end .big { font-size: clamp(3rem, 14vw, 5rem); margin: 0; }
+  .end p { font-size: 1.4rem; }
+  .home-link { display: inline-block; font: inherit; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--btn); border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; margin-bottom: 10px; min-height: 40px; }
+  .home-link:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="home-link" href="../math.html"><span aria-hidden="true">←</span> Math Games</a>
+  <header>
+    <h1>Pattern jumps</h1>
+    <div class="tools">
+      <span class="streak" id="streak" aria-live="polite"></span>
+      <button type="button" class="pill" id="soundBtn" aria-pressed="true">🔊 Sound on</button>
+    </div>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true"></div>
+
+  <section class="card" id="game">
+    <p class="prompt">Find the pattern. Fill in the missing numbers.</p>
+    <p class="rule" id="rule"></p>
+    <div class="seq" id="seq"></div>
+    <div id="keypad"></div>
+    <div class="fix hidden" id="fix"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <button type="button" class="next hidden" id="nextBtn">Next</button>
+  </section>
+
+  <section class="card end hidden" id="end">
+    <p class="big">🦘</p>
+    <h2 id="endTitle">All done!</h2>
+    <p id="score"></p>
+    <button type="button" class="next" id="againBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+(function () {
+  // ---- Settings ----
+  // The game gets harder in stages so students build confidence first.
+  //   dir:   "up" counts forward, "down" counts back, "mix" is mostly back with some forward
+  //   cross: false = never crosses a hundred (like 342, 352, 362), true = crosses (like 89, 99, 109)
+  //   tens:  how many of the stage's patterns count by 10s (the rest count by 100s)
+  //   blanks: 1 = one blank per pattern, 2 = two blanks, "mix" = one or two
+  const STAGES = [
+    { n: 8, dir: "up",   cross: false, tens: 4, blanks: 1 },
+    { n: 7, dir: "up",   cross: true,  tens: 5, blanks: "mix" },
+    { n: 7, dir: "down", cross: false, tens: 4, blanks: 1 },
+    { n: 8, dir: "mix",  cross: true,  tens: 5, blanks: "mix" }
+  ];
+  const TOTAL = STAGES.reduce((a, st) => a + st.n, 0);   // 30 rounds
+  const TERMS = 5;           // numbers in each pattern
+  const MAX = 1000;
+
+  const $ = (id) => document.getElementById(id);
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  let soundOn = true;
+  function say(text) {
+    if (!soundOn || !("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.9; speechSynthesis.speak(u); } catch (e) {}
+  }
+
+  // ---- Build patterns ----
+  function tensPattern(cross) {
+    // cross: start with 6–9 tens so the pattern passes a hundred; otherwise 0–5 tens so it never does
+    for (;;) {
+      const h = rnd(0, 9);
+      const t = cross ? rnd(6, 9) : rnd(0, 5);
+      const o = rnd(0, 9);
+      const s = h * 100 + t * 10 + o;
+      const list = [...Array(TERMS)].map((_, k) => s + 10 * k);
+      if (s >= 10 && list[TERMS - 1] <= MAX) return list;
+    }
+  }
+  function hundredsPattern() {
+    // stays under 1000, so it never crosses into the thousands
+    for (;;) {
+      const r = Math.random() < 0.5 ? rnd(1, 9) * 10 : rnd(1, 99);   // like 630 or 45
+      const h = rnd(0, 5);
+      const s = h * 100 + r;
+      const list = [...Array(TERMS)].map((_, k) => s + 100 * k);
+      if (list[TERMS - 1] < MAX) return list;
+    }
+  }
+  const to1000 = () => [600, 700, 800, 900, 1000];
+
+  function pickBlanks(mode) {
+    // always keep two neighbors visible so the jump can be found
+    for (;;) {
+      const count = mode === "mix" ? (Math.random() < 0.6 ? 2 : 1) : mode;
+      const blanks = shuffle([...Array(TERMS)].map((_, i) => i)).slice(0, count).sort((a, b) => a - b);
+      // early one-blank rounds: blank is never the very first number
+      if (count === 1 && mode === 1 && blanks[0] === 0) continue;
+      const shown = (i) => !blanks.includes(i);
+      let pair = false;
+      for (let i = 0; i < TERMS - 1; i++) if (shown(i) && shown(i + 1)) pair = true;
+      if (pair) return blanks;
+    }
+  }
+
+  function buildRounds() {
+    const all = [];
+    STAGES.forEach((st) => {
+      const kinds = shuffle([...Array(st.n)].map((_, i) => (i < st.tens ? "10" : "100")));
+      let used1000 = false;
+      const stageRounds = kinds.map((k, i) => {
+        let list;
+        if (k === "10") list = tensPattern(st.cross);
+        else if (st.cross && !used1000 && Math.random() < 0.35) { used1000 = true; list = to1000(); }
+        else list = hundredsPattern();
+        const back = st.dir === "down" || (st.dir === "mix" && Math.random() < 0.7);
+        if (back) list = list.slice().reverse();
+        return { list, step: list[1] - list[0], blanks: pickBlanks(st.blanks) };
+      });
+      all.push(...stageRounds);
+    });
+    return all;
+  }
+
+  // ---- Place value helpers ----
+  const placeNames = ["thousands", "hundreds", "tens", "ones"];
+  const placeCls = ["th", "h", "t", "o"];
+  const digits4 = (n) => String(n).padStart(4, "0").split("").map(Number);
+  function ruleText(step) {
+    const size = Math.abs(step);
+    return step > 0 ? `Counting up by ${size}s: +${size}` : `Counting back by ${size}s: −${size}`;
+  }
+  const jumpLabel = (step) => (step > 0 ? "+" : "−") + Math.abs(step);
+
+  // Marks the digits that changed from a to b
+  function markChanged(a, b) {
+    const da = String(a), db = String(b);
+    const pad = Math.max(da.length, db.length);
+    const A = da.padStart(pad, " "), B = db.padStart(pad, " ");
+    return B.split("").map((ch, i) => ch === " " ? "" : (A[i] !== ch ? `<span class="chg">${ch}</span>` : ch)).join("");
+  }
+
+  // ---- State ----
+  let rounds = [], index = 0, firstTry = 0, streak = 0, missed = false, solved = false;
+  let filled = [], active = -1, typed = "", missedThisBlank = false;
+
+  function drawTrack() { $("track").innerHTML = rounds.map((r, i) => `<span class="${r.result || ""} ${i === index ? "now" : ""}"></span>`).join(""); }
+  function drawStreak() { $("streak").textContent = streak >= 2 ? `🔥 ${streak} in a row` : ""; }
+  function setFeedback(t, cls) { const f = $("feedback"); f.textContent = t; f.className = "feedback" + (cls ? " " + cls : ""); }
+
+  function drawSeq(reveal) {
+    const r = rounds[index];
+    $("seq").innerHTML = r.list.map((v, i) => {
+      const joint = i ? `<span class="joint${reveal ? " jump" : ""}">${reveal ? jumpLabel(r.step) : ","}</span>` : "";
+      let cell;
+      if (!r.blanks.includes(i)) {
+        cell = `<div class="seq-cell">${reveal && i ? markChanged(r.list[i - 1], v) : v}</div>`;
+      } else if (filled[i] !== undefined) {
+        cell = `<div class="seq-cell filled">${reveal && i ? markChanged(r.list[i - 1], v) : v}</div>`;
+      } else {
+        cell = `<div class="seq-cell blank${i === active ? " active" : ""}" ${i === active ? 'id="display"' : ""} aria-label="missing number">${i === active ? (typed || "?") : "?"}</div>`;
+      }
+      return joint + cell;
+    }).join("");
+  }
+
+  const ERASER = `<svg class="eraser" viewBox="0 0 52 32" aria-hidden="true"><g transform="rotate(-18 26 16)"><rect x="4" y="8" width="44" height="17" rx="4" fill="#F7A1B8" stroke="#1F2A44" stroke-width="2.5"/><rect x="4" y="8" width="15" height="17" rx="4" fill="#5B8DEF" stroke="#1F2A44" stroke-width="2.5"/></g></svg>`;
+  function drawKeypad() {
+    const keys = [1,2,3,4,5,6,7,8,9,0].map((d) => `<button type="button" class="key" data-d="${d}">${d}</button>`).join("");
+    $("keypad").innerHTML = `<div class="keypad">${keys}<button type="button" class="key wide" data-act="del" aria-label="Erase">${ERASER}Erase</button><button type="button" class="key go" data-act="check">Check</button></div>`;
+  }
+
+  function showRound() {
+    const r = rounds[index];
+    missed = false; solved = false; filled = []; typed = ""; missedThisBlank = false;
+    active = r.blanks[0];
+    $("rule").textContent = "";
+    $("fix").classList.add("hidden"); $("fix").innerHTML = "";
+    $("nextBtn").classList.add("hidden");
+    setFeedback("");
+    drawSeq(false); drawKeypad();
+    drawTrack(); drawStreak();
+    say("Find the pattern. Fill in the missing numbers.");
+  }
+
+  // ---- Corrective feedback ----
+  function neighborFor(i) {
+    const r = rounds[index];
+    const known = (j) => j >= 0 && j < TERMS && (!r.blanks.includes(j) || filled[j] !== undefined);
+    if (known(i - 1)) return { from: r.list[i - 1], dir: 1 };
+    if (known(i + 1)) return { from: r.list[i + 1], dir: -1 };
+    // two blanks in a row with nothing beside: use the nearest known number two away
+    if (known(i - 2)) return { from: r.list[i - 2], dir: 2 };
+    return { from: r.list[i + 2], dir: -2 };
+  }
+
+  function explain(from, to) {
+    const diff = to - from, size = Math.abs(diff), up = diff > 0;
+    const f = digits4(from), t = digits4(to);
+    const pIdx = size === 10 ? 2 : 1;   // tens or hundreds place
+    const word = up ? "more" : "less";
+    const place = placeNames[pIdx];
+    if (size === 20 || size === 200) {
+      const unit = size / 2;
+      return `Each jump is ${unit}. ${to} is two jumps from ${from}: ${size} ${word}.`;
+    }
+    const crossed = f[pIdx - 1] !== t[pIdx - 1] || (pIdx === 2 && f[0] !== t[0]);
+    if (!crossed) {
+      return `${size} ${word} than ${from} is ${to}. Only the ${place} digit changes: ${f[pIdx]} ${place} → ${t[pIdx]} ${place}.`;
+    }
+    const bigger = placeNames[pIdx - 1];
+    if (size === 10 && (from === 1000 || to === 1000)) {
+      return up
+        ? `10 more than 990 is 1000. 9 tens and 1 more ten make 10 tens, which is 1 hundred. Now there are 10 hundreds, which make 1 thousand.`
+        : `10 less than 1000 is 990. Trade 1 thousand for 10 hundreds, and 1 hundred for 10 tens. Take away 1 ten: 9 hundreds, 9 tens, 0 ones.`;
+    }
+    if (up) {
+      return `${size} ${word} than ${from} is ${to}. The ${place} go from 9 to 10, and 10 ${place} make 1 ${bigger.slice(0, -1)}. So the ${bigger} digit goes up by 1 and the ${place} digit becomes 0.`;
+    }
+    return `${size} ${word} than ${from} is ${to}. There are 0 ${place}, so trade 1 ${bigger.slice(0, -1)} for 10 ${place}. Take 1 away and there are 9 ${place} left.`;
+  }
+
+  function pvChart(from, to, step) {
+    const useTh = from >= 1000 || to >= 1000;
+    const cols = useTh ? [0, 1, 2, 3] : [1, 2, 3];
+    const f = digits4(from), t = digits4(to);
+    const lead = (n, i) => {   // hide leading zeros
+      const s = String(n), len = s.length;
+      return i >= 4 - len;
+    };
+    const cell = (d, n, i, other) => `<div class="c ${placeCls[i]}${d[i] !== other[i] ? " lit" : ""}">${lead(n, i) ? d[i] : ""}</div>`;
+    const tpl = `grid-template-columns: 5em repeat(${cols.length}, 1fr);`;
+    return `<div class="pv" style="${tpl}">
+      <div></div>${cols.map((i) => `<div class="hd ${placeCls[i]}">${placeNames[i]}</div>`).join("")}
+      <div class="lbl">${from}</div>${cols.map((i) => cell(f, from, i, t)).join("")}
+      <div class="jumpRow">${jumpLabel(to - from)} ↓</div>
+      <div class="lbl">${to}</div>${cols.map((i) => cell(t, to, i, f)).join("")}
+    </div>`;
+  }
+
+  function showFix(i, guess) {
+    const r = rounds[index];
+    const ans = r.list[i];
+    const { from } = neighborFor(i);
+    let text = "";
+    const g = Number(guess);
+    if (Math.abs(g - ans) === 1 || Math.abs(g - from) === 1) {
+      text = `Careful! That changes the ones. This pattern jumps by ${Math.abs(r.step)}, so the ones digit stays the same. `;
+    } else if (Math.abs(g - ans) === 100 && Math.abs(r.step) === 10) {
+      text = `Close! Watch the hundreds digit. `;
+    }
+    text += explain(from, ans);
+    const fix = $("fix");
+    fix.innerHTML = `<p class="fix-text">${text}</p>${pvChart(from, ans, r.step)}`;
+    fix.classList.remove("hidden");
+    $("rule").textContent = ruleText(r.step);
+    say(text.replace(/→/g, "to").replace(/−/g, "minus"));
+  }
+
+  // ---- Checking ----
+  function check() {
+    const r = rounds[index];
+    if (solved || !typed) return;
+    const ans = r.list[active];
+    if (typed === String(ans)) {
+      filled[active] = ans;
+      typed = ""; missedThisBlank = false;
+      const nextBlank = r.blanks.find((b) => filled[b] === undefined);
+      if (nextBlank === undefined) return win();
+      active = nextBlank;
+      $("fix").classList.add("hidden");
+      setFeedback("Yes! Now the next one.", "good");
+      say("Yes! Now the next one.");
+      drawSeq(false);
+      return;
+    }
+    const guess = typed;
+    typed = "";
+    if (missedThisBlank) {
+      setFeedback("Not yet. Look at the chart and try again.", "try");
+      say("Not yet. Look at the chart and try again.");
+      drawSeq(false);
+      return;
+    }
+    missed = true; missedThisBlank = true;
+    setFeedback("Not quite. Look at the chart, then type it again.", "");
+    drawSeq(false);
+    showFix(active, guess);
+  }
+
+  function win() {
+    const r = rounds[index];
+    solved = true; active = -1;
+    if (!missed) { firstTry++; streak++; r.result = "done"; } else { streak = 0; r.result = "retry"; }
+    $("rule").textContent = ruleText(r.step);
+    $("fix").classList.add("hidden");
+    drawSeq(true);
+    const size = Math.abs(r.step);
+    const place = size === 10 ? "tens" : "hundreds";
+    const cheer = missed ? "Yes, now you've got it!" : ["Yes!", "You got it!", "Great job!", "That's right!", "Super!"][rnd(0, 4)];
+    setFeedback(`${cheer} Each jump changes the ${place} digit.`, "good");
+    say(`${cheer} ${r.step > 0 ? "Counting up" : "Counting back"} by ${size}s.`);
+    $("keypad").querySelectorAll("button").forEach((b) => (b.disabled = true));
+    $("nextBtn").classList.remove("hidden"); $("nextBtn").focus();
+    drawTrack(); drawStreak();
+  }
+
+  function updateDisplay() {
+    const d = $("display"); if (d) d.textContent = typed || "?";
+  }
+
+  // ---- Events ----
+  $("keypad").addEventListener("click", (e) => {
+    const key = e.target.closest(".key");
+    if (!key || solved) return;
+    if (key.dataset.d !== undefined) { if (typed.length < 4) typed += key.dataset.d; updateDisplay(); }
+    else if (key.dataset.act === "del") { typed = typed.slice(0, -1); updateDisplay(); }
+    else if (key.dataset.act === "check") check();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.id === "soundBtn" || e.target.id === "hearBtn") return;
+    if (solved) { if (e.key === "Enter" && !$("nextBtn").classList.contains("hidden")) { e.preventDefault(); $("nextBtn").click(); } return; }
+    if (/^[0-9]$/.test(e.key)) { if (typed.length < 4) typed += e.key; updateDisplay(); }
+    else if (e.key === "Backspace") { typed = typed.slice(0, -1); updateDisplay(); }
+    else if (e.key === "Enter") { e.preventDefault(); check(); }
+  });
+  $("nextBtn").addEventListener("click", () => {
+    index++;
+    if (index >= TOTAL) return finish();
+    showRound(); window.scrollTo({ top: 0 });
+  });
+  $("againBtn").addEventListener("click", start);
+  $("soundBtn").addEventListener("click", (e) => {
+    soundOn = !soundOn;
+    e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+    e.currentTarget.setAttribute("aria-pressed", String(soundOn));
+    if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  function finish() {
+    $("game").classList.add("hidden"); $("end").classList.remove("hidden"); $("nextBtn").classList.add("hidden");
+    index = TOTAL; drawTrack();
+    $("endTitle").textContent = `You finished all ${TOTAL} patterns!`;
+    $("score").textContent = `${firstTry} out of ${TOTAL} with no mistakes.`;
+    say(`You finished all ${TOTAL} patterns!`);
+  }
+  function start() {
+    rounds = buildRounds(); index = 0; firstTry = 0; streak = 0;
+    $("end").classList.add("hidden"); $("game").classList.remove("hidden");
+    showRound();
+  }
+  start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Make 5: Number Bonds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #DDF1FA; --card: #FFFFFF; --ink: #1F2A44; --soft-ink: #4A5878;
+    --sun: #FFC93C; --grape: #6C4AB6; --grape-ink: #FFFFFF;
+    --leaf: #1E7A43; --leaf-bg: #DDF5E6; --berry: #C13560; --berry-bg: #FCE3EA;
+    --dot: #B9D7E6; --btn: #FFFFFF; --btn-border: #1F2A44;
+    --known: #3BA6E8; --known-bg: #DCEFFC; --missing: #FF8A3D; --missing-bg: #FFE9D9; --known-ink: #1D6FA5; --missing-ink: #B34A0E;
+    --whole-bg: #EFE8FF; --line: #1F2A44; --cell: #F4FAFD;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+      --grape: #A98BF0; --grape-ink: #14213A;
+      --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+      --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+      --known-bg: #1B3552; --missing-bg: #3D2E22; --known-ink: #3BA6E8; --missing-ink: #FF8A3D; --whole-bg: #2C2550; --line: #B8C4E0; --cell: #263A60;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+    --grape: #A98BF0; --grape-ink: #14213A;
+    --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+    --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+    --known-bg: #1B3552; --missing-bg: #3D2E22; --known-ink: #3BA6E8; --missing-ink: #FF8A3D; --whole-bg: #2C2550; --line: #B8C4E0; --cell: #263A60;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%; background: var(--sky); color: var(--ink);
+    font-family: "Andika", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 640px; padding: 16px 16px 32px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  h1 { font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0; }
+  .tools { display: flex; gap: 8px; align-items: center; }
+  .streak { font-weight: 700; font-size: 1.05rem; }
+  .pill {
+    font: inherit; font-size: 1rem; background: var(--btn); color: var(--ink);
+    border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+
+  .track { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .track span { width: 14px; height: 14px; border-radius: 50%; background: var(--dot); }
+  .track span.done { background: var(--leaf); }
+  .track span.retry { background: var(--sun); }
+  .track span.now { outline: 3px solid var(--grape); outline-offset: 1px; }
+
+  .card { background: var(--card); border-radius: 26px; padding: 18px 14px 20px; }
+  .prompt { font-size: clamp(1.3rem, 5vw, 1.8rem); text-align: center; margin: 0 0 6px; }
+
+  /* number bond */
+  .bond { display: block; width: 100%; max-width: 360px; margin: 0 auto; }
+  .bond line { stroke: var(--line); stroke-width: 5; stroke-linecap: round; }
+  .bond .whole { fill: var(--whole-bg); stroke: var(--grape); stroke-width: 5; }
+  .bond .known { fill: var(--known-bg); stroke: var(--known); stroke-width: 5; }
+  .bond .missing { fill: var(--missing-bg); stroke: var(--missing); stroke-width: 5; stroke-dasharray: 10 8; }
+  .bond .missing.filled { stroke-dasharray: none; }
+  .bond text { fill: var(--ink); font-family: inherit; font-weight: 700; font-size: 52px; text-anchor: middle; dominant-baseline: central; }
+  .bond text.q { fill: var(--missing-ink); }
+
+  /* number sentences under the bond */
+  .eqs { display: grid; gap: 8px; justify-content: center; margin: 6px 0 2px; }
+  .eq { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 700; font-size: clamp(1.8rem, 8vw, 2.6rem); }
+  .eq .lbl { font-size: 1rem; font-weight: 400; color: var(--soft-ink); width: 5.5em; text-align: right; }
+  .eq .w { color: var(--grape); }
+  .eq .k { color: var(--known-ink); }
+  .eq .m { color: var(--missing-ink); min-width: 1.2em; text-align: center; }
+  .eq .m.blank { border: 3px dashed var(--missing); border-radius: 10px; line-height: 1.1; }
+
+  /* answer buttons 0–5 */
+  .nums { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 14px; }
+  .num {
+    font: inherit; font-weight: 700; font-size: clamp(2rem, 9vw, 3rem);
+    background: var(--btn); color: var(--ink); border: 4px solid var(--btn-border);
+    border-radius: 18px; padding: 6px 0; cursor: pointer;
+  }
+  .num.right { background: var(--leaf-bg); border-color: var(--leaf); color: var(--leaf); }
+  .num.wrong { background: var(--berry-bg); border-color: var(--berry); color: var(--berry); }
+  .num.hint { box-shadow: 0 0 0 5px var(--sun); border-color: var(--sun); }
+  button:disabled { cursor: default; }
+  button:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+
+  /* five-frame */
+  .help { margin-top: 16px; }
+  .frame {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+    max-width: 400px; margin: 0 auto; padding: 4px;
+    background: var(--line); border-radius: 12px;
+  }
+  .cell { aspect-ratio: 1; background: var(--cell); border-radius: 8px; display: grid; place-items: center; position: relative; }
+  .ball { width: 72%; height: 72%; border-radius: 50%; }
+  .ball.k { background: var(--known); }
+  .ball.m { background: var(--missing); animation: pop .35s ease; }
+  .cell .n { position: absolute; bottom: 2px; right: 6px; font-weight: 700; font-size: .9rem; color: var(--soft-ink); }
+  @keyframes pop { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .key-legend { display: flex; justify-content: center; gap: 18px; margin-top: 10px; font-size: 1.05rem; flex-wrap: wrap; }
+  .key-legend span::before { content: ""; display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin-right: 6px; vertical-align: -2px; }
+  .key-legend .lk::before { background: var(--known); }
+  .key-legend .lm::before { background: var(--missing); }
+
+  .feedback { min-height: 3em; margin-top: 14px; text-align: center; font-size: clamp(1.15rem, 4vw, 1.45rem); }
+  .feedback.good { color: var(--leaf); font-weight: 700; }
+  .next {
+    font: inherit; font-weight: 700; font-size: 1.4rem; display: block; margin: 8px auto 0;
+    background: var(--grape); color: var(--grape-ink); border: none; border-radius: 999px; padding: 12px 36px; cursor: pointer;
+  }
+  .hidden { display: none !important; }
+  .end { text-align: center; padding: 30px 10px; }
+  .end .big { font-size: clamp(3rem, 14vw, 5rem); margin: 0; }
+  .end p { font-size: 1.4rem; }
+  @media (prefers-reduced-motion: reduce) { .ball.m { animation: none; } }
+  .home-link { display: inline-block; font: inherit; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--btn); border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; margin-bottom: 10px; min-height: 40px; }
+  .home-link:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="home-link" href="../math.html"><span aria-hidden="true">←</span> Math Games</a>
+  <header>
+    <h1>Make 5</h1>
+    <div class="tools">
+      <span class="streak" id="streak" aria-live="polite"></span>
+      <button type="button" class="pill" id="soundBtn" aria-pressed="true">🔊 Sound on</button>
+    </div>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true"></div>
+
+  <section class="card" id="game">
+    <p class="prompt">What is the missing part?</p>
+    <div id="bond"></div>
+    <div class="eqs" id="eqs"></div>
+    <div class="nums" id="nums"></div>
+    <div class="help hidden" id="help"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <button type="button" class="next hidden" id="nextBtn">Next</button>
+  </section>
+
+  <section class="card end hidden" id="end">
+    <p class="big">🖐️</p>
+    <h2 id="endTitle">All done!</h2>
+    <p id="score"></p>
+    <button type="button" class="next" id="againBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+(function () {
+  const WHOLE = 5;
+  // Known parts used in the rounds. 1–4 show up 4 times each; 0 and 5 twice each. 20 rounds.
+  const KNOWN_LIST = [1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4, 0,0, 5,5];
+  const TOTAL = KNOWN_LIST.length;
+  const WORDS = ["zero","one","two","three","four","five"];
+
+  const $ = (id) => document.getElementById(id);
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  let soundOn = true, timers = [];
+  function say(text) {
+    if (!soundOn || !("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.85; speechSynthesis.speak(u); } catch (e) {}
+  }
+
+  let rounds = [], index = 0, firstTry = 0, streak = 0, missed = false, solved = false, busy = false;
+
+  function buildRounds() {
+    let list;
+    do { list = shuffle(KNOWN_LIST.slice()); } while (list.some((v, i) => i > 0 && v === list[i - 1]));
+    // The blank part switches sides at random
+    return list.map((known) => ({ known, missing: WHOLE - known, blankLeft: Math.random() < 0.5 }));
+  }
+
+  function bondSVG(r, filled) {
+    const left = r.blankLeft ? "missing" : "known", right = r.blankLeft ? "known" : "missing";
+    const val = (side) => side === "known" ? r.known : (filled ? r.missing : "?");
+    const cls = (side) => side + (side === "missing" && filled ? " filled" : "");
+    const tcls = (side) => side === "missing" ? "q" : "";
+    return `<svg class="bond" viewBox="0 0 300 250" role="img" aria-label="Number bond. The whole is 5. One part is ${r.known}. The other part is ${filled ? r.missing : "missing"}.">
+      <line x1="150" y1="65" x2="78" y2="180"/><line x1="150" y1="65" x2="222" y2="180"/>
+      <circle class="whole" cx="150" cy="62" r="50"/><text x="150" y="64">${WHOLE}</text>
+      <circle class="${cls(left)}" cx="75" cy="188" r="46"/><text class="${tcls(left)}" x="75" y="190">${val(left)}</text>
+      <circle class="${cls(right)}" cx="225" cy="188" r="46"/><text class="${tcls(right)}" x="225" y="190">${val(right)}</text>
+    </svg>`;
+  }
+
+  // Addition and subtraction sentences, colored to match the bond
+  function eqHTML(r, filled) {
+    const k = `<span class="k">${r.known}</span>`;
+    const m = `<span class="m${filled ? "" : " blank"}">${filled ? r.missing : "?"}</span>`;
+    const w = `<span class="w">${WHOLE}</span>`;
+    const addParts = r.blankLeft ? `${m} <span>+</span> ${k}` : `${k} <span>+</span> ${m}`;
+    return `<div class="eq" aria-label="Addition: ${r.blankLeft ? (filled ? r.missing : "blank") + " plus " + r.known : r.known + " plus " + (filled ? r.missing : "blank")} equals 5"><span class="lbl">Addition</span>${addParts} <span>=</span> ${w}</div>
+      <div class="eq" aria-label="Subtraction: 5 minus ${r.known} equals ${filled ? r.missing : "blank"}"><span class="lbl">Subtraction</span>${w} <span>−</span> ${k} <span>=</span> ${m}</div>`;
+  }
+
+  // Five-frame: known part in blue, missing part in orange
+  function frameHTML(r, showMissing) {
+    let cells = "";
+    for (let i = 0; i < WHOLE; i++) {
+      const ball = i < r.known ? `<div class="ball k"></div>` : (showMissing ? `<div class="ball m"></div>` : "");
+      cells += `<div class="cell" data-i="${i}">${ball}</div>`;
+    }
+    return `<div class="frame">${cells}</div>
+      <div class="key-legend"><span class="lk">${r.known} we know</span><span class="lm">${r.missing} missing</span></div>`;
+  }
+
+  function drawTrack() { $("track").innerHTML = rounds.map((r, i) => `<span class="${r.result || ""} ${i === index ? "now" : ""}"></span>`).join(""); }
+  function drawStreak() { $("streak").textContent = streak >= 2 ? `🔥 ${streak} in a row` : ""; }
+  function setFeedback(t, cls) { const f = $("feedback"); f.textContent = t; f.className = "feedback" + (cls ? " " + cls : ""); }
+
+  function showRound() {
+    timers.forEach(clearTimeout); timers = [];
+    const r = rounds[index];
+    missed = false; solved = false; busy = false;
+    $("bond").innerHTML = bondSVG(r, false);
+    $("eqs").innerHTML = eqHTML(r, false);
+    $("nums").innerHTML = [0,1,2,3,4,5].map((v) => `<button type="button" class="num" data-v="${v}">${v}</button>`).join("");
+    $("help").classList.add("hidden"); $("help").innerHTML = "";
+    $("nextBtn").classList.add("hidden");
+    setFeedback("");
+    drawTrack(); drawStreak();
+    say(`Five is ${WORDS[r.known]} and what?`);
+  }
+
+  function sentence(r) {
+    const a = r.blankLeft ? r.missing : r.known, b = r.blankLeft ? r.known : r.missing;
+    return `${a} and ${b} make 5.`;
+  }
+
+  function win(btn) {
+    const r = rounds[index];
+    solved = true;
+    btn.classList.remove("hint"); btn.classList.add("right");
+    $("nums").querySelectorAll(".num").forEach((b) => (b.disabled = true));
+    if (!missed) { firstTry++; streak++; r.result = "done"; } else { streak = 0; r.result = "retry"; }
+    $("bond").innerHTML = bondSVG(r, true);
+    $("eqs").innerHTML = eqHTML(r, true);
+    // Show the full five-frame as a picture of the answer
+    $("help").innerHTML = frameHTML(r, true);
+    $("help").classList.remove("hidden");
+    const cheer = missed ? "Yes, now you've got it!" : ["Yes!", "You got it!", "Great job!", "That's right!", "Super!"][Math.floor(Math.random() * 5)];
+    setFeedback(`${cheer} ${sentence(r)}`, "good");
+    const addSay = r.blankLeft ? `${WORDS[r.missing]} plus ${WORDS[r.known]}` : `${WORDS[r.known]} plus ${WORDS[r.missing]}`;
+    say(`${cheer} ${addSay} equals five. Five minus ${WORDS[r.known]} equals ${WORDS[r.missing]}.`);
+    $("nextBtn").classList.remove("hidden"); $("nextBtn").focus();
+    drawTrack(); drawStreak();
+  }
+
+  // Corrective feedback: blue dots for the part we know, then count on with orange dots to 5
+  function correct(r) {
+    busy = true;
+    const help = $("help");
+    help.innerHTML = frameHTML(r, false);
+    help.classList.remove("hidden");
+    setFeedback(`Not quite. Let's use a five-frame. The blue dots show ${r.known}. How many more make 5?`);
+    say(`Not quite. Let's use a five frame. The blue dots show ${WORDS[r.known]}. How many more make five?`);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const step = reduced ? 600 : 900;
+    const cells = [...help.querySelectorAll(".cell")];
+    let t = 3800;
+    for (let i = r.known; i < WHOLE; i++) {
+      const k = i - r.known + 1;
+      timers.push(setTimeout(() => {
+        cells[i].innerHTML = `<div class="ball m"></div><span class="n">${k}</span>`;
+        say(WORDS[k]);
+      }, t));
+      t += step;
+    }
+    timers.push(setTimeout(() => {
+      const msg = r.missing === 0
+        ? `The frame is already full. ${r.known} and 0 make 5. The missing part is 0.`
+        : `We added ${r.missing} orange ${r.missing === 1 ? "dot" : "dots"}. ${r.known} and ${r.missing} make 5. Tap ${r.missing}.`;
+      setFeedback(msg);
+      say(msg.replace(/\d/g, (d) => WORDS[d]));
+      $("nums").querySelector(`[data-v="${r.missing}"]`).classList.add("hint");
+      busy = false;
+    }, t + 200));
+  }
+
+  $("nums").addEventListener("click", (e) => {
+    const btn = e.target.closest(".num");
+    if (!btn || solved || busy || btn.disabled) return;
+    const r = rounds[index], v = Number(btn.dataset.v);
+    if (v === r.missing) return win(btn);
+    btn.classList.add("wrong"); btn.disabled = true;
+    if (!missed) { missed = true; correct(r); }
+    else { setFeedback(`Count the orange dots. Tap ${r.missing}.`); say(`Count the orange dots.`); }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (/^[0-5]$/.test(e.key)) { const b = $("nums").querySelector(`[data-v="${e.key}"]`); if (b) b.click(); }
+    else if (e.key === "Enter" && !$("nextBtn").classList.contains("hidden")) { e.preventDefault(); $("nextBtn").click(); }
+  });
+  $("nextBtn").addEventListener("click", () => {
+    index++;
+    if (index >= TOTAL) return finish();
+    showRound(); window.scrollTo({ top: 0 });
+  });
+  $("againBtn").addEventListener("click", start);
+  $("soundBtn").addEventListener("click", (e) => {
+    soundOn = !soundOn;
+    e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+    e.currentTarget.setAttribute("aria-pressed", String(soundOn));
+    if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  function finish() {
+    $("game").classList.add("hidden"); $("end").classList.remove("hidden"); $("nextBtn").classList.add("hidden");
+    index = TOTAL; drawTrack();
+    $("endTitle").textContent = `You made 5 all ${TOTAL} times!`;
+    $("score").textContent = `${firstTry} out of ${TOTAL} right on the first try.`;
+    say(`You did it! ${firstTry} right on the first try.`);
+  }
+  function start() {
+    rounds = buildRounds(); index = 0; firstTry = 0; streak = 0;
+    $("end").classList.add("hidden"); $("game").classList.remove("hidden");
+    showRound();
+  }
+  start();
+})();
+</script>
+</body>
+</html>

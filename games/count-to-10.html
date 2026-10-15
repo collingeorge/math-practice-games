@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Count and Match: 1 to 10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #DDF1FA;
+    --mat: #FFFFFF;
+    --ink: #1F2A44;
+    --soft-ink: #4A5878;
+    --sun: #FFC93C;
+    --grape: #6C4AB6;
+    --grape-ink: #FFFFFF;
+    --leaf: #1E7A43;
+    --leaf-bg: #DDF5E6;
+    --berry: #C13560;
+    --berry-bg: #FCE3EA;
+    --dot: #B9D7E6;
+    --btn: #FFFFFF;
+    --btn-border: #1F2A44;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --sky: #14213A; --mat: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+      --sun: #FFC93C; --grape: #A98BF0; --grape-ink: #14213A;
+      --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+      --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --sky: #14213A; --mat: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+    --sun: #FFC93C; --grape: #A98BF0; --grape-ink: #14213A;
+    --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+    --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%;
+    background: var(--sky); color: var(--ink);
+    font-family: "Andika", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 760px; padding: 16px 16px 32px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  h1 { font-size: clamp(1.4rem, 4vw, 2rem); margin: 0; }
+  .sound {
+    font: inherit; font-size: 1rem; background: var(--btn); color: var(--ink);
+    border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+
+  .track { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px; }
+  .track span { width: 14px; height: 14px; border-radius: 50%; background: var(--dot); }
+  .track span.done { background: var(--leaf); }
+  .track span.retry { background: var(--sun); }
+  .track span.now { outline: 3px solid var(--grape); outline-offset: 1px; }
+
+  .prompt { font-size: clamp(1.3rem, 4.5vw, 1.8rem); text-align: center; margin: 0 0 12px; }
+
+  /* The counting mat: objects sit in rows of 5, like a ten-frame */
+  .mat {
+    background: var(--mat); border-radius: 28px; padding: 22px 12px;
+    border: 4px dashed var(--dot);
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    justify-items: center; align-items: center; min-height: 210px;
+  }
+  .obj {
+    position: relative; width: 100%; max-width: 92px; aspect-ratio: 1;
+    display: grid; place-items: center;
+    font-size: clamp(2.4rem, 10vw, 4rem); line-height: 1;
+  }
+  .obj svg { width: 78%; height: 78%; }
+  .obj.counted { animation: hop .35s ease; }
+  .badge {
+    position: absolute; top: -6px; right: -2px;
+    background: var(--grape); color: var(--grape-ink);
+    font-weight: 700; font-size: 1.1rem; min-width: 30px; height: 30px; border-radius: 15px;
+    display: grid; place-items: center; padding: 0 6px;
+  }
+  @keyframes hop { 50% { transform: translateY(-10px) scale(1.08); } }
+
+  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+  .choice {
+    font: inherit; font-weight: 700; font-size: clamp(2.6rem, 11vw, 4rem);
+    background: var(--btn); color: var(--ink);
+    border: 4px solid var(--btn-border); border-radius: 24px;
+    padding: 10px 0; cursor: pointer; transition: transform .1s;
+  }
+  .choice:active { transform: scale(.96); }
+  .choice:focus-visible, .sound:focus-visible, .next:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+  .choice.right { background: var(--leaf-bg); border-color: var(--leaf); color: var(--leaf); }
+  .choice.wrong { background: var(--berry-bg); border-color: var(--berry); color: var(--berry); }
+  .choice.hint { border-color: var(--sun); box-shadow: 0 0 0 5px var(--sun); }
+  .choice:disabled { cursor: default; }
+
+  .feedback { min-height: 3.2em; margin-top: 16px; text-align: center; font-size: clamp(1.15rem, 4vw, 1.5rem); }
+  .feedback.good { color: var(--leaf); font-weight: 700; }
+  .feedback.fix { color: var(--ink); }
+  .next {
+    font: inherit; font-weight: 700; font-size: 1.4rem; display: block; margin: 8px auto 0;
+    background: var(--grape); color: var(--grape-ink); border: none; border-radius: 999px;
+    padding: 12px 36px; cursor: pointer;
+  }
+  .hidden { display: none !important; }
+
+  .end { text-align: center; padding: 30px 10px; }
+  .end .big { font-size: clamp(3rem, 14vw, 5rem); margin: 0; }
+  .end p { font-size: 1.4rem; }
+
+  @media (prefers-reduced-motion: reduce) { .obj.counted { animation: none; } .choice { transition: none; } }
+  .home-link { display: inline-block; font: inherit; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--btn); border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; margin-bottom: 10px; min-height: 40px; }
+  .home-link:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="home-link" href="../math.html"><span aria-hidden="true">←</span> Math Games</a>
+  <header>
+    <h1>Count and match</h1>
+    <button type="button" class="sound" id="soundBtn" aria-pressed="true">🔊 Sound on</button>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true"></div>
+
+  <section id="game">
+    <p class="prompt" id="prompt">How many?</p>
+    <div class="mat" id="mat" role="img"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <button type="button" class="next hidden" id="nextBtn">Next</button>
+  </section>
+
+  <section class="end hidden" id="end">
+    <p class="big">⭐</p>
+    <h2>You did all 30!</h2>
+    <p id="score"></p>
+    <button type="button" class="next" id="againBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+(function () {
+  const TOTAL = 30;
+
+  // Shapes are drawn so they look the same on every device
+  const shape = (inner) => `<svg viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+  const OBJECTS = [
+    { one: "dog", many: "dogs", art: "🐶" },
+    { one: "cat", many: "cats", art: "🐱" },
+    { one: "fish", many: "fish", art: "🐟" },
+    { one: "frog", many: "frogs", art: "🐸" },
+    { one: "turtle", many: "turtles", art: "🐢" },
+    { one: "ladybug", many: "ladybugs", art: "🐞" },
+    { one: "chick", many: "chicks", art: "🐥" },
+    { one: "apple", many: "apples", art: "🍎" },
+    { one: "star", many: "stars", art: "⭐" },
+    { one: "circle", many: "circles", svg: shape('<circle cx="50" cy="50" r="42" fill="#3BA6E8" stroke="#1F5F8B" stroke-width="5"/>') },
+    { one: "triangle", many: "triangles", svg: shape('<polygon points="50,8 94,90 6,90" fill="#FF8A3D" stroke="#A84F12" stroke-width="5" stroke-linejoin="round"/>') },
+    { one: "square", many: "squares", svg: shape('<rect x="10" y="10" width="80" height="80" rx="8" fill="#8E6CE0" stroke="#4E3492" stroke-width="5"/>') },
+    { one: "heart", many: "hearts", svg: shape('<path d="M50 88 C20 66 6 48 10 30 C14 12 38 8 50 26 C62 8 86 12 90 30 C94 48 80 66 50 88Z" fill="#F0567E" stroke="#9C2346" stroke-width="5" stroke-linejoin="round"/>') }
+  ];
+  const WORDS = ["zero","one","two","three","four","five","six","seven","eight","nine","ten"];
+  const CHEERS = ["Yes!", "You got it!", "Great counting!", "That's right!", "Super!", "Nice work!"];
+
+  const $ = (id) => document.getElementById(id);
+  const mat = $("mat"), choicesEl = $("choices"), feedback = $("feedback"), nextBtn = $("nextBtn"), track = $("track");
+
+  let rounds = [], index = 0, firstTryRight = 0, missedThisRound = false, busy = false, soundOn = true;
+
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+  // Each number 1–10 shows up 3 times; no number twice in a row; objects vary
+  function buildRounds() {
+    let counts;
+    do {
+      counts = shuffle([...Array(TOTAL)].map((_, i) => (i % 10) + 1));
+    } while (counts.some((c, i) => i > 0 && c === counts[i - 1]));
+    let lastObj = -1;
+    return counts.map((n) => {
+      let o; do { o = Math.floor(Math.random() * OBJECTS.length); } while (o === lastObj);
+      lastObj = o;
+      return { n, obj: OBJECTS[o], options: makeOptions(n) };
+    });
+  }
+
+  // Wrong choices are close to the answer (that's where kids mix up)
+  function makeOptions(n) {
+    const near = [];
+    for (let d = 1; d <= 3; d++) { if (n - d >= 1) near.push(n - d); if (n + d <= 10) near.push(n + d); }
+    const picks = shuffle(near.slice(0, 4)).slice(0, 2);
+    return shuffle([n, ...picks]);
+  }
+
+  function say(text) {
+    if (!soundOn || !("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.85; speechSynthesis.speak(u); } catch (e) {}
+  }
+
+  function drawTrack() {
+    track.innerHTML = rounds.map((r, i) =>
+      `<span class="${r.result || ""} ${i === index ? "now" : ""}"></span>`).join("");
+  }
+
+  function showRound() {
+    const r = rounds[index];
+    missedThisRound = false; busy = false;
+    $("prompt").textContent = `How many ${r.obj.many}?`;
+    mat.setAttribute("aria-label", `A group of ${r.obj.many} to count`);
+    mat.innerHTML = Array.from({ length: r.n }, () =>
+      `<div class="obj">${r.obj.svg || r.obj.art}</div>`).join("");
+    choicesEl.innerHTML = r.options.map((v) =>
+      `<button type="button" class="choice" data-v="${v}" aria-label="${v}">${v}</button>`).join("");
+    feedback.textContent = ""; feedback.className = "feedback";
+    nextBtn.classList.add("hidden");
+    drawTrack();
+    say(`How many ${r.obj.many}?`);
+  }
+
+  function lockChoices() { choicesEl.querySelectorAll(".choice").forEach((b) => (b.disabled = true)); }
+
+  function onChoose(btn) {
+    if (busy || btn.disabled) return;
+    const r = rounds[index], v = Number(btn.dataset.v);
+
+    if (v === r.n) {
+      btn.classList.remove("hint"); btn.classList.add("right");
+      lockChoices();
+      const word = r.n === 1 ? r.obj.one : r.obj.many;
+      if (!missedThisRound) { firstTryRight++; r.result = "done"; } else { r.result = "retry"; }
+      const cheer = missedThisRound ? "Yes, now you've got it!" : CHEERS[Math.floor(Math.random() * CHEERS.length)];
+      feedback.className = "feedback good";
+      feedback.textContent = `${cheer} There ${r.n === 1 ? "is" : "are"} ${r.n} ${word}.`;
+      say(`${cheer} ${WORDS[r.n]} ${word}.`);
+      mat.querySelectorAll(".obj").forEach((o) => { o.classList.remove("counted"); void o.offsetWidth; o.classList.add("counted"); });
+      drawTrack();
+      nextBtn.classList.remove("hidden"); nextBtn.focus();
+    } else {
+      // Corrective feedback: count together, one object at a time
+      missedThisRound = true;
+      btn.classList.add("wrong"); btn.disabled = true;
+      countTogether(r);
+    }
+  }
+
+  function countTogether(r) {
+    busy = true;
+    feedback.className = "feedback fix";
+    feedback.textContent = "Not quite. Let's count together. Touch each one as we count.";
+    say("Not quite. Let's count together.");
+    const objs = [...mat.querySelectorAll(".obj")];
+    objs.forEach((o) => { const b = o.querySelector(".badge"); if (b) b.remove(); });
+    const step = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 600 : 850;
+    objs.forEach((o, i) => {
+      setTimeout(() => {
+        o.insertAdjacentHTML("beforeend", `<span class="badge">${i + 1}</span>`);
+        o.classList.remove("counted"); void o.offsetWidth; o.classList.add("counted");
+        say(WORDS[i + 1]);
+      }, 1600 + i * step);
+    });
+    setTimeout(() => {
+      const word = r.n === 1 ? r.obj.one : r.obj.many;
+      feedback.textContent = `The last number we said is ${r.n}. There ${r.n === 1 ? "is" : "are"} ${r.n} ${word}. Find ${r.n}.`;
+      say(`The last number we said is ${WORDS[r.n]}. Find ${WORDS[r.n]}.`);
+      const right = choicesEl.querySelector(`[data-v="${r.n}"]`);
+      right.classList.add("hint");
+      busy = false;
+    }, 1600 + objs.length * step + 300);
+  }
+
+  function next() {
+    index++;
+    if (index >= TOTAL) return finish();
+    showRound();
+    const first = choicesEl.querySelector(".choice"); if (first) first.focus({ preventScroll: true });
+  }
+
+  function finish() {
+    $("game").classList.add("hidden");
+    $("end").classList.remove("hidden");
+    index = TOTAL; drawTrack();
+    $("score").textContent = `${firstTryRight} out of ${TOTAL} right on the first try.`;
+    say(`You did all thirty! ${firstTryRight} right on the first try.`);
+  }
+
+  function start() {
+    rounds = buildRounds(); index = 0; firstTryRight = 0;
+    $("end").classList.add("hidden"); $("game").classList.remove("hidden");
+    showRound();
+  }
+
+  choicesEl.addEventListener("click", (e) => { const b = e.target.closest(".choice"); if (b) onChoose(b); });
+  nextBtn.addEventListener("click", next);
+  $("againBtn").addEventListener("click", start);
+  $("soundBtn").addEventListener("click", (e) => {
+    soundOn = !soundOn;
+    e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+    e.currentTarget.setAttribute("aria-pressed", String(soundOn));
+    if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  start();
+})();
+</script>
+</body>
+</html>
