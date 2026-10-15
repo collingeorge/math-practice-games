@@ -86,7 +86,6 @@
   .flat { width: calc(var(--u) * 10); height: calc(var(--u) * 10); }
   .rod { width: var(--u); height: calc(var(--u) * 10); }
   .unit { width: var(--u); height: var(--u); }
-  .flat rect, .flat path { vector-effect: non-scaling-stroke; }
 
   /* answer controls */
   .answer { margin-top: 16px; }
@@ -169,7 +168,7 @@
 
   <div class="track" id="track" aria-hidden="true"></div>
 
-  <section class="card" id="game">
+  <div class="card" id="game">
     <p class="kind" id="kind"></p>
     <p class="prompt" id="prompt"></p>
     <div id="stage"></div>
@@ -177,7 +176,7 @@
     <div class="fix hidden" id="fix"></div>
     <div class="feedback" id="feedback" aria-live="polite"></div>
     <button type="button" class="next hidden" id="nextBtn">Next</button>
-  </section>
+  </div>
 
   <section class="card end hidden" id="end">
     <p class="big">🏆</p>
@@ -209,7 +208,7 @@
   // ---- Blocks ----
   const gridPath = (() => { let d = ""; for (let i = 10; i < 100; i += 10) d += `M${i} 0V100M0 ${i}H100`; return d; })();
   const rodPath = (() => { let d = ""; for (let i = 10; i < 100; i += 10) d += `M0 ${i}H10`; return d; })();
-  const FLAT = `<svg class="flat" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" style="fill:var(--flat);stroke:var(--block-line);stroke-width:2"/><path d="${gridPath}" style="stroke:var(--block-line);stroke-width:.8;opacity:.55"/></svg>`;
+  const FLAT = `<svg class="flat" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" vector-effect="non-scaling-stroke" style="fill:var(--flat);stroke:var(--block-line);stroke-width:2"/><path d="${gridPath}" vector-effect="non-scaling-stroke" style="stroke:var(--block-line);stroke-width:.8;opacity:.55"/></svg>`;
   const ROD = `<svg class="rod" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><rect width="10" height="100" style="fill:var(--rod);stroke:var(--block-line);stroke-width:1.2"/><path d="${rodPath}" style="stroke:var(--block-line);stroke-width:.8;opacity:.55"/></svg>`;
   const UNIT = `<svg class="unit" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" style="fill:var(--unit);stroke:var(--block-line);stroke-width:1.2"/></svg>`;
   const rep = (s, k) => Array(k).fill(s).join("");
