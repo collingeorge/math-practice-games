@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #DDF1FA; --card: #FFFFFF; --ink: #1F2A44; --soft-ink: #4A5878;
+    --sun: #FFC93C; --grape: #6C4AB6; --grape-ink: #FFFFFF;
+    --leaf: #1E7A43; --leaf-bg: #DDF5E6; --berry: #C13560; --berry-bg: #FCE3EA;
+    --dot: #B9D7E6; --btn: #FFFFFF; --btn-border: #1F2A44;
+    --a: #3BA6E8; --a-bg: #DCEFFC; --b: #FF8A3D; --b-bg: #FFE9D9; --a-ink: #1D6FA5; --b-ink: #B34A0E;
+    --line: #1F2A44; --cell: #F4FAFD; --pic-bg: #F7FBFE; --neutral: #C9D3E3;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --a-ink: #3BA6E8; --b-ink: #FF8A3D;
+      --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+      --grape: #A98BF0; --grape-ink: #14213A;
+      --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+      --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+      --a-bg: #1B3552; --b-bg: #3D2E22; --line: #B8C4E0; --cell: #263A60; --pic-bg: #22355A; --neutral: #4A5E86;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --a-ink: #3BA6E8; --b-ink: #FF8A3D;
+    --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+    --grape: #A98BF0; --grape-ink: #14213A;
+    --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+    --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+    --a-bg: #1B3552; --b-bg: #3D2E22; --line: #B8C4E0; --cell: #263A60; --pic-bg: #22355A; --neutral: #4A5E86;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%; background: var(--sky); color: var(--ink);
+    font-family: "Andika", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 640px; padding: 16px 14px 32px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  h1 { font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0; }
+  .tools { display: flex; gap: 8px; align-items: center; }
+  .streak { font-weight: 700; font-size: 1.05rem; }
+  .pill {
+    font: inherit; font-size: 1rem; background: var(--btn); color: var(--ink);
+    border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+
+  .track { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .track span { width: 13px; height: 13px; border-radius: 50%; background: var(--dot); }
+  .track span.done { background: var(--leaf); }
+  .track span.retry { background: var(--sun); }
+  .track span.now { outline: 3px solid var(--grape); outline-offset: 1px; }
+
+  .card { background: var(--card); border-radius: 26px; padding: 18px 14px 20px; }
+
+  /* the fact */
+  .fact { display: flex; justify-content: center; align-items: center; gap: .3em; font-weight: 700; font-size: clamp(3rem, 15vw, 5rem); line-height: 1.1; margin: 6px 0 4px; }
+  .fact .na { color: var(--a-ink); } .fact .nb { color: var(--b-ink); }
+  .ansbox {
+    min-width: 1.6em; text-align: center; border: 4px dashed var(--grape); border-radius: 18px;
+    padding: 0 .1em; color: var(--ink); min-height: 1.15em;
+  }
+  .ansbox.done { border-style: solid; border-color: var(--leaf); background: var(--leaf-bg); color: var(--leaf); }
+  .tag { text-align: center; font-weight: 700; color: var(--grape); min-height: 1.4em; font-size: 1.15rem; margin: 0; }
+
+  /* keypad */
+  .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 460px; margin: 16px auto 0; }
+  .key {
+    font: inherit; font-weight: 700; font-size: clamp(1.6rem, 7vw, 2.2rem);
+    background: var(--btn); color: var(--ink); border: 3px solid var(--btn-border);
+    border-radius: 16px; padding: 8px 0; cursor: pointer;
+  }
+  .key.wide { grid-column: span 2; font-size: 1.3rem; }
+  .key.go { grid-column: span 3; background: var(--grape); color: var(--grape-ink); border-color: var(--grape); font-size: 1.4rem; }
+  .eraser { width: 1.7em; height: 1.1em; vertical-align: middle; margin-right: 4px; }
+  button:disabled { cursor: default; opacity: .6; }
+  button:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+
+  /* strategy help */
+  .fix { margin-top: 16px; padding: 14px 10px; border-radius: 20px; border: 3px dashed var(--sun); }
+  .strategy { text-align: center; font-weight: 700; font-size: 1.25rem; margin: 0 0 6px; color: var(--grape); }
+  .fix-text { font-size: clamp(1.05rem, 4vw, 1.25rem); text-align: center; margin: 0 0 12px; }
+  .fix-eq { text-align: center; font-weight: 700; font-size: clamp(1.3rem, 5.5vw, 1.8rem); margin: 10px 0 0; }
+  .pic { display: block; width: 100%; max-width: 380px; margin: 0 auto; background: var(--pic-bg); border-radius: 16px; }
+  .pic text { font-family: inherit; font-weight: 700; fill: var(--ink); }
+  .cap { text-align: center; font-weight: 700; margin: 6px 0 0; }
+
+  /* count on */
+  .hop { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .bignum {
+    width: 3.4rem; height: 3.4rem; border-radius: 50%; background: var(--a-bg); border: 4px solid var(--a);
+    display: grid; place-items: center; font-weight: 700; font-size: 2rem; color: var(--ink);
+  }
+  .step { display: grid; justify-items: center; gap: 4px; }
+  .step .ball { width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--b); }
+  .step .say { font-weight: 700; font-size: 1.4rem; min-height: 1.6rem; color: var(--b-ink); }
+  .step.wait .ball { opacity: .25; } .step.wait .say { visibility: hidden; }
+  .eqsign { font-size: 2rem; font-weight: 700; }
+  .total { font-size: 2rem; font-weight: 700; color: var(--leaf); }
+
+  /* ten-frames */
+  .frames { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .frames > div { flex: 1 1 0; max-width: 220px; min-width: 0; }
+  .frame { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 4px; background: var(--line); border-radius: 10px; width: 100%; }
+  .plus1 { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 8px; font-weight: 700; font-size: 1.8rem; }
+  .plus1 .dbl { padding: 2px 12px; border-radius: 12px; background: var(--a-bg); border: 3px solid var(--a); }
+  .plus1 .extra { width: 2rem; height: 2rem; border-radius: 50%; background: var(--leaf); box-shadow: 0 0 0 4px var(--sun); }
+  .plus1 .tot { color: var(--leaf); }
+  .cell { aspect-ratio: 1; background: var(--cell); border-radius: 6px; display: grid; place-items: center; }
+  .cell .c { width: 74%; height: 74%; border-radius: 50%; }
+  .c.a { background: var(--a); } .c.b { background: var(--b); }
+  .c.moved { box-shadow: 0 0 0 3px var(--sun); }
+  .flab { text-align: center; font-weight: 700; margin-top: 4px; }
+
+  .feedback { min-height: 1.6em; margin-top: 14px; text-align: center; font-size: clamp(1.15rem, 4vw, 1.4rem); }
+  .feedback.good { color: var(--leaf); font-weight: 700; }
+  .feedback.try { color: var(--berry); }
+  .next {
+    font: inherit; font-weight: 700; font-size: 1.4rem; display: block; margin: 10px auto 0;
+    background: var(--grape); color: var(--grape-ink); border: none; border-radius: 999px; padding: 12px 36px; cursor: pointer;
+  }
+  .hidden { display: none !important; }
+  .end { text-align: center; padding: 30px 10px; }
+  .end .big { font-size: clamp(3rem, 14vw, 5rem); margin: 0; }
+  .end p { font-size: 1.4rem; }
+  .home-link { display: inline-block; font: inherit; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--btn); border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; margin-bottom: 10px; min-height: 40px; }
+  .home-link:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="home-link" href="../math.html"><span aria-hidden="true">←</span> Math Games</a>
+  <header>
+    <h1>__H1__</h1>
+    <div class="tools">
+      <span class="streak" id="streak" aria-live="polite"></span>
+      <button type="button" class="pill" id="soundBtn" aria-pressed="true">🔊 Sound on</button>
+    </div>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true"></div>
+
+  <section class="card" id="game">
+    <div class="fact" id="fact" aria-live="polite"></div>
+    <p class="tag" id="tag"></p>
+    <div id="keypad"></div>
+    <div class="fix hidden" id="fix"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <button type="button" class="next hidden" id="nextBtn">Next</button>
+  </section>
+
+  <section class="card end hidden" id="end">
+    <p class="big">⭐</p>
+    <h2 id="endTitle">All done!</h2>
+    <p id="score"></p>
+    <button type="button" class="next" id="againBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+(function () {
+  // ---- Settings ----
+  // MAX_SUM: largest sum in this game.
+  // STAGES: easier facts come first. Each stage picks n facts from the listed strategies:
+  //   "zero" (+0), "countOn" (+1, +2, +3), "doubles", "nearDoubles" (doubles + 1), "makeTen", "any"
+  //   minSum / maxSum narrow the facts in that stage.
+  const CONFIG = __CONFIG__;
+  const { MAX_SUM, STAGES } = CONFIG;
+  const TOTAL = STAGES.reduce((s, st) => s + st.n, 0);
+  const WORDS = ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen"];
+
+  const $ = (id) => document.getElementById(id);
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function shuffle(x) { for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; } return x; }
+  let soundOn = true, timers = [];
+  function say(text) {
+    if (!soundOn || !("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.88; speechSynthesis.speak(u); } catch (e) {}
+  }
+  const spoken = (t) => t.replace(/\d+/g, (d) => WORDS[Number(d)] ?? d).replace(/\+/g, " plus ").replace(/=/g, " equals ");
+
+  // ---- Which strategy fits a fact ----
+  function strategy(a, b) {
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    if (lo === 0) return "zero";
+    if (a === b) return "doubles";
+    if (lo <= 3) return "countOn";
+    if (hi - lo === 1) return "nearDoubles";
+    if (a + b >= 10) return "makeTen";
+    return "countOn";
+  }
+  const NAMES = { zero: "Adding zero", countOn: "Count on", doubles: "Doubles", nearDoubles: "Doubles plus 1", makeTen: "Make 10" };
+
+  // ---- Build rounds ----
+  function allFacts() {
+    const f = [];
+    for (let a = 0; a <= 9; a++) for (let b = 0; b <= 9; b++) if (a + b <= MAX_SUM) f.push({ a, b, s: strategy(a, b) });
+    return f;
+  }
+  function buildRounds() {
+    const facts = allFacts();
+    const rounds = [];
+    STAGES.forEach((st) => {
+      let pool = facts.filter((f) => (st.types.includes("any") || st.types.includes(f.s)) &&
+        f.a + f.b >= (st.minSum ?? 0) && f.a + f.b <= (st.maxSum ?? MAX_SUM) &&
+        (!st.maxSmall || Math.min(f.a, f.b) <= st.maxSmall) && (!st.minSmall || Math.min(f.a, f.b) >= st.minSmall));
+      const picks = [];
+      let bag = [];
+      while (picks.length < st.n) {
+        if (!bag.length) bag = shuffle(pool.slice());
+        const f = bag.pop();
+        const prev = picks[picks.length - 1] || rounds[rounds.length - 1];
+        if (prev && pool.length > 2 && ((prev.a === f.a && prev.b === f.b) || (prev.a === f.b && prev.b === f.a))) continue;
+        picks.push({ ...f });
+      }
+      rounds.push(...picks);
+    });
+    return rounds;
+  }
+
+  // ---- Doubles pictures (first addend blue, second addend orange) ----
+  const A = "var(--a)", B = "var(--b)", N = "var(--neutral)", L = "var(--line)";
+  function svg(inner, h = 150) { return `<svg class="pic" viewBox="0 0 320 ${h}" aria-hidden="true">${inner}</svg>`; }
+  const DOUBLES = {
+    1: { name: "two eyes", sides: "1 eye on each side", draw: () => svg(`
+        <ellipse cx="115" cy="75" rx="45" ry="32" fill="#fff" stroke="${L}" stroke-width="4"/><circle cx="115" cy="75" r="17" fill="${A}"/><circle cx="115" cy="75" r="6" fill="#1F2A44"/>
+        <ellipse cx="205" cy="75" rx="45" ry="32" fill="#fff" stroke="${L}" stroke-width="4"/><circle cx="205" cy="75" r="17" fill="${B}"/><circle cx="205" cy="75" r="6" fill="#1F2A44"/>`) },
+    2: { name: "car tires", sides: "2 tires on each side", draw: () => svg(`
+        <rect x="70" y="35" width="26" height="30" rx="6" fill="${A}"/><rect x="70" y="88" width="26" height="30" rx="6" fill="${A}"/>
+        <rect x="224" y="35" width="26" height="30" rx="6" fill="${B}"/><rect x="224" y="88" width="26" height="30" rx="6" fill="${B}"/>
+        <rect x="98" y="24" width="124" height="106" rx="34" fill="${N}" stroke="${L}" stroke-width="4"/>
+        <rect x="136" y="40" width="38" height="74" rx="10" fill="#fff" opacity=".7"/>`) },
+    3: { name: "bug legs", sides: "3 legs on each side", draw: () => {
+        let legs = "";
+        for (let i = 0; i < 3; i++) { const y = 52 + i * 24; legs += `<path d="M150 ${y} L105 ${y - 12} L82 ${y + 6}" stroke="${A}" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M170 ${y} L215 ${y - 12} L238 ${y + 6}" stroke="${B}" stroke-width="7" fill="none" stroke-linecap="round"/>`; }
+        return svg(`${legs}<ellipse cx="160" cy="80" rx="30" ry="46" fill="#E8455F" stroke="${L}" stroke-width="4"/><line x1="160" y1="38" x2="160" y2="125" stroke="${L}" stroke-width="3"/><circle cx="160" cy="30" r="16" fill="#1F2A44"/>`);
+      } },
+    4: { name: "spider legs", sides: "4 legs on each side", draw: () => {
+        let legs = "";
+        for (let i = 0; i < 4; i++) { const y = 46 + i * 20; legs += `<path d="M150 ${y + 18} L100 ${y - 4} L68 ${y + 28}" stroke="${A}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M170 ${y + 18} L220 ${y - 4} L252 ${y + 28}" stroke="${B}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`; }
+        return svg(`${legs}<circle cx="160" cy="88" r="30" fill="#1F2A44"/><circle cx="160" cy="52" r="20" fill="#1F2A44"/><circle cx="153" cy="48" r="4" fill="#fff"/><circle cx="167" cy="48" r="4" fill="#fff"/>`);
+      } },
+    5: { name: "two hands", sides: "5 fingers on each hand", draw: () => {
+        // one hand drawn around x = 0, thumb pointing left; mirrored for the other hand
+        const hand = (col) => `
+          <rect x="-28" y="18" width="12" height="58" rx="6" fill="${col}" stroke="${L}" stroke-width="3"/>
+          <rect x="-14" y="10" width="12" height="66" rx="6" fill="${col}" stroke="${L}" stroke-width="3"/>
+          <rect x="0" y="12" width="12" height="64" rx="6" fill="${col}" stroke="${L}" stroke-width="3"/>
+          <rect x="14" y="22" width="12" height="54" rx="6" fill="${col}" stroke="${L}" stroke-width="3"/>
+          <rect x="-58" y="70" width="40" height="14" rx="7" fill="${col}" stroke="${L}" stroke-width="3" transform="rotate(-35 -22 77)"/>
+          <rect x="-30" y="60" width="58" height="70" rx="18" fill="${col}" stroke="${L}" stroke-width="3"/>`;
+        return svg(`<g transform="translate(96 4) scale(-1 1)">${hand(A)}</g><g transform="translate(224 4)">${hand(B)}</g>`, 140);
+      } },
+    6: { name: "an egg carton", sides: "6 eggs in each row", draw: () => {
+        let e = "";
+        for (let i = 0; i < 6; i++) { const x = 62 + i * 39; e += `<ellipse cx="${x}" cy="55" rx="15" ry="19" fill="${A}" stroke="${L}" stroke-width="2.5"/><ellipse cx="${x}" cy="100" rx="15" ry="19" fill="${B}" stroke="${L}" stroke-width="2.5"/>`; }
+        return svg(`<rect x="38" y="28" width="244" height="98" rx="12" fill="${N}" stroke="${L}" stroke-width="4"/>${e}`);
+      } },
+    7: { name: "two weeks on a calendar", sides: "7 days in each week", draw: () => {
+        let c = ""; const d = "SMTWTFS";
+        for (let i = 0; i < 7; i++) { const x = 34 + i * 37; c += `<text x="${x + 16}" y="30" text-anchor="middle" font-size="15">${d[i]}</text><rect x="${x}" y="40" width="32" height="32" rx="5" fill="${A}" stroke="${L}" stroke-width="2"/><rect x="${x}" y="80" width="32" height="32" rx="5" fill="${B}" stroke="${L}" stroke-width="2"/>`; }
+        return svg(c, 124);
+      } },
+    8: { name: "a box of crayons", sides: "8 crayons in each row", draw: () => {
+        let c = "";
+        for (let i = 0; i < 8; i++) { const x = 44 + i * 30;
+          c += `<polygon points="${x},44 ${x + 9},24 ${x + 18},44" fill="${A}" stroke="${L}" stroke-width="2"/><rect x="${x}" y="44" width="18" height="30" fill="${A}" stroke="${L}" stroke-width="2"/>`;
+          c += `<polygon points="${x},98 ${x + 9},78 ${x + 18},98" fill="${B}" stroke="${L}" stroke-width="2"/><rect x="${x}" y="98" width="18" height="30" fill="${B}" stroke="${L}" stroke-width="2"/>`; }
+        return svg(c, 140);
+      } },
+    9: { name: "an 18-wheeler truck", sides: "9 wheels on each side", draw: () => {
+        let w = "";
+        for (let i = 0; i < 9; i++) { const x = i < 2 ? 34 + i * 30 : 104 + (i - 2) * 28; w += `<rect x="${x}" y="22" width="22" height="16" rx="5" fill="${A}" stroke="${L}" stroke-width="2"/><rect x="${x}" y="112" width="22" height="16" rx="5" fill="${B}" stroke="${L}" stroke-width="2"/>`; }
+        return svg(`${w}<rect x="20" y="42" width="66" height="66" rx="14" fill="${N}" stroke="${L}" stroke-width="4"/><rect x="96" y="40" width="210" height="70" rx="6" fill="${N}" stroke="${L}" stroke-width="4"/>`);
+      } }
+  };
+
+  // ---- Strategy feedback ----
+  function countOnHTML(hi, lo) {
+    let steps = "";
+    for (let i = 1; i <= lo; i++) steps += `<div class="step wait" data-i="${i}"><div class="ball"></div><div class="say">${hi + i}</div></div>`;
+    return `<div class="hop"><div class="bignum">${hi}</div>${steps}<span class="eqsign hidden" id="coEq">=</span><span class="total hidden" id="coTot">${hi + lo}</span></div>`;
+  }
+  function makeTenHTML(hi, lo) {
+    const move = 10 - hi, rest = lo - move;
+    let f1 = "", f2 = "";
+    for (let i = 0; i < 10; i++) f1 += `<div class="cell">${i < hi ? `<div class="c a"></div>` : `<div class="c b moved"></div>`}</div>`;
+    for (let i = 0; i < 10; i++) f2 += `<div class="cell">${i < rest ? `<div class="c b"></div>` : ""}</div>`;
+    return `<div class="frames"><div><div class="frame">${f1}</div><div class="flab">10</div></div>${rest > 0 ? `<div><div class="frame">${f2}</div><div class="flab">${rest}</div></div>` : ""}</div>`;
+  }
+
+  function showFix(r, guess) {
+    timers.forEach(clearTimeout); timers = [];
+    const { a, b } = r, sum = a + b, lo = Math.min(a, b), hi = Math.max(a, b);
+    let title = NAMES[r.s], text = "", body = "", eq = "", speech = "";
+    const g = Number(guess);
+    if (r.s === "zero") {
+      text = `Adding 0 means adding nothing. The number stays the same.`;
+      eq = `${hi} + 0 = ${hi}`;
+      body = makeDots(hi);
+    } else if (r.s === "countOn") {
+      text = (g === sum - 1 ? `Careful! Don't count the ${hi} again. ` : "") + `Start with the bigger number, ${hi}. Then count on ${lo}.`;
+      body = countOnHTML(hi, lo);
+      speech = `Start with ${hi}. Count on ${lo}.`;
+    } else if (r.s === "doubles") {
+      const d = DOUBLES[a];
+      text = `${a} + ${a} is a double. Think of ${d.name}: ${d.sides}.`;
+      body = d.draw() + `<p class="cap">${d.name}: ${a} + ${a} = ${sum}</p>`;
+      eq = `${a} + ${a} = ${sum}`;
+    } else if (r.s === "nearDoubles") {
+      const d = DOUBLES[lo];
+      text = `${a} + ${b} is almost a double. Use the double you know: ${lo} + ${lo} = ${lo * 2} (${d.name}). Then add 1 more.`;
+      body = d.draw() + `<p class="cap">${d.name}: ${lo} + ${lo} = ${lo * 2}</p><div class="plus1" aria-label="${lo * 2} plus 1 more equals ${sum}"><span class="dbl">${lo * 2}</span><span>+</span><span class="extra" title="1 more"></span><span>=</span><span class="tot">${sum}</span></div>`;
+      eq = `${lo} + ${lo} + 1 = ${lo * 2} + 1 = ${sum}`;
+    } else {
+      const move = 10 - hi, rest = lo - move;
+      text = rest === 0
+        ? `${hi} and ${lo} are ten friends. They fill a ten-frame.`
+        : `Fill a ten-frame. ${hi} needs ${move} more to make 10, so move ${move} from the ${lo}. That leaves ${rest}.`;
+      body = makeTenHTML(hi, lo);
+      eq = rest === 0 ? `${hi} + ${lo} = 10` : `${hi} + ${lo} = 10 + ${rest} = ${sum}`;
+    }
+    $("fix").innerHTML = `<p class="strategy">Strategy: ${title}</p><p class="fix-text">${text}</p>${body}${eq ? `<p class="fix-eq">${eq}</p>` : ""}`;
+    $("fix").classList.remove("hidden");
+
+    if (r.s === "countOn") {
+      say(spoken(speech));
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const step = reduced ? 600 : 900;
+      for (let i = 1; i <= lo; i++) {
+        timers.push(setTimeout(() => {
+          const el = $("fix").querySelector(`.step[data-i="${i}"]`); if (el) el.classList.remove("wait");
+          say(WORDS[hi + i]);
+        }, 2200 + (i - 1) * step));
+      }
+      timers.push(setTimeout(() => {
+        const e1 = $("coEq"), e2 = $("coTot"); if (e1) e1.classList.remove("hidden"); if (e2) e2.classList.remove("hidden");
+        say(spoken(`${a} + ${b} = ${sum}. Now you type it.`));
+      }, 2200 + lo * step + 200));
+    } else {
+      say(spoken(`${text} ${eq}. Now you type it.`));
+    }
+  }
+  function makeDots(n) {
+    let c = "";
+    for (let i = 0; i < 10; i++) c += `<div class="cell">${i < n ? `<div class="c a"></div>` : ""}</div>`;
+    return `<div class="frames"><div><div class="frame">${c}</div><div class="flab">${n} + nothing</div></div></div>`;
+  }
+
+  // ---- State ----
+  let rounds = [], index = 0, firstTry = 0, streak = 0, missed = false, solved = false, typed = "";
+
+  function drawTrack() { $("track").innerHTML = rounds.map((r, i) => `<span class="${r.result || ""} ${i === index ? "now" : ""}"></span>`).join(""); }
+  function drawStreak() { $("streak").textContent = streak >= 2 ? `🔥 ${streak} in a row` : ""; }
+  function setFeedback(t, cls) { const f = $("feedback"); f.textContent = t; f.className = "feedback" + (cls ? " " + cls : ""); }
+  function drawFact() {
+    const r = rounds[index];
+    $("fact").innerHTML = `<span class="na">${r.a}</span><span>+</span><span class="nb">${r.b}</span><span>=</span><span class="ansbox${solved ? " done" : ""}" id="display">${solved ? r.a + r.b : typed}</span>`;
+    $("fact").setAttribute("aria-label", `${r.a} plus ${r.b} equals ${solved ? r.a + r.b : "blank"}`);
+  }
+
+  const ERASER = `<svg class="eraser" viewBox="0 0 52 32" aria-hidden="true"><g transform="rotate(-18 26 16)"><rect x="4" y="8" width="44" height="17" rx="4" fill="#F7A1B8" stroke="#1F2A44" stroke-width="2.5"/><rect x="4" y="8" width="15" height="17" rx="4" fill="#5B8DEF" stroke="#1F2A44" stroke-width="2.5"/></g></svg>`;
+  function drawKeypad() {
+    const keys = [1,2,3,4,5,6,7,8,9,0].map((d) => `<button type="button" class="key" data-d="${d}">${d}</button>`).join("");
+    $("keypad").innerHTML = `<div class="keypad">${keys}<button type="button" class="key wide" data-act="del" aria-label="Erase">${ERASER}Erase</button><button type="button" class="key go" data-act="check">Check</button></div>`;
+  }
+
+  function showRound() {
+    timers.forEach(clearTimeout); timers = [];
+    const r = rounds[index];
+    missed = false; solved = false; typed = "";
+    $("fix").classList.add("hidden"); $("fix").innerHTML = "";
+    $("nextBtn").classList.add("hidden");
+    $("tag").textContent = "";
+    setFeedback("");
+    drawKeypad(); drawFact();
+    drawTrack(); drawStreak();
+    say(spoken(`${r.a} + ${r.b}`));
+  }
+
+  function check() {
+    if (solved || !typed) return;
+    const r = rounds[index], sum = r.a + r.b;
+    if (typed === String(sum)) return win();
+    const guess = typed; typed = ""; drawFact();
+    if (missed) { setFeedback("Not yet. Use the picture and try again.", "try"); say("Not yet. Use the picture and try again."); return; }
+    missed = true;
+    setFeedback("Not quite. Use the strategy, then type the answer.");
+    showFix(r, guess);
+  }
+
+  function win() {
+    const r = rounds[index];
+    solved = true;
+    timers.forEach(clearTimeout); timers = [];
+    if (!missed) { firstTry++; streak++; r.result = "done"; } else { streak = 0; r.result = "retry"; }
+    drawFact();
+    $("tag").textContent = NAMES[r.s] + (r.s === "doubles" ? `: ${DOUBLES[r.a].name}` : "");
+    const cheer = missed ? "Yes, now you've got it!" : ["Yes!", "You got it!", "Great job!", "That's right!", "Super!"][rnd(0, 4)];
+    setFeedback(cheer, "good");
+    say(spoken(`${cheer} ${r.a} + ${r.b} = ${r.a + r.b}.`));
+    $("keypad").querySelectorAll("button").forEach((b) => (b.disabled = true));
+    $("nextBtn").classList.remove("hidden"); $("nextBtn").focus();
+    drawTrack(); drawStreak();
+  }
+
+  function addDigit(d) { if (typed.length < 2) { typed += d; drawFact(); } }
+
+  $("keypad").addEventListener("click", (e) => {
+    const key = e.target.closest(".key");
+    if (!key || solved) return;
+    if (key.dataset.d !== undefined) addDigit(key.dataset.d);
+    else if (key.dataset.act === "del") { typed = typed.slice(0, -1); drawFact(); }
+    else if (key.dataset.act === "check") check();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.id === "soundBtn") return;
+    if (solved) { if (e.key === "Enter" && !$("nextBtn").classList.contains("hidden")) { e.preventDefault(); $("nextBtn").click(); } return; }
+    if (/^[0-9]$/.test(e.key)) addDigit(e.key);
+    else if (e.key === "Backspace") { typed = typed.slice(0, -1); drawFact(); }
+    else if (e.key === "Enter") { e.preventDefault(); check(); }
+  });
+  $("nextBtn").addEventListener("click", () => {
+    index++;
+    if (index >= TOTAL) return finish();
+    showRound(); window.scrollTo({ top: 0 });
+  });
+  $("againBtn").addEventListener("click", start);
+  $("soundBtn").addEventListener("click", (e) => {
+    soundOn = !soundOn;
+    e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+    e.currentTarget.setAttribute("aria-pressed", String(soundOn));
+    if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  function finish() {
+    $("game").classList.add("hidden"); $("end").classList.remove("hidden"); $("nextBtn").classList.add("hidden");
+    index = TOTAL; drawTrack();
+    $("endTitle").textContent = `You finished all ${TOTAL} facts!`;
+    $("score").textContent = `${firstTry} out of ${TOTAL} right on the first try.`;
+    say(`You finished all ${TOTAL} facts!`);
+  }
+  function start() {
+    rounds = buildRounds(); index = 0; firstTry = 0; streak = 0;
+    $("end").classList.add("hidden"); $("game").classList.remove("hidden");
+    showRound();
+  }
+  start();
+})();
+</script>
+</body>
+</html>

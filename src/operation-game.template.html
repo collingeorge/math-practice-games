@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #DDF1FA; --card: #FFFFFF; --ink: #1F2A44; --soft-ink: #4A5878;
+    --sun: #FFC93C; --grape: #6C4AB6; --grape-ink: #FFFFFF;
+    --leaf: #1E7A43; --leaf-bg: #DDF5E6; --berry: #C13560; --berry-bg: #FCE3EA;
+    --dot: #B9D7E6; --btn: #FFFFFF; --btn-border: #1F2A44;
+    --c0: #FFEEDF; --c1: #E2F6E9; --c2: #E3F1FB;
+    --unit: #FF8A3D; --rod: #3FB86A; --flat: #3BA6E8; --block-line: #1F2A44;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+      --grape: #A98BF0; --grape-ink: #14213A;
+      --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+      --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+      --c0: #3D2E22; --c1: #1B3D33; --c2: #1B3552; --block-line: #14213A;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --sky: #14213A; --card: #1E2E4D; --ink: #F1F5FF; --soft-ink: #B8C4E0;
+    --grape: #A98BF0; --grape-ink: #14213A;
+    --leaf: #5FD68E; --leaf-bg: #173D2A; --berry: #FF7FA0; --berry-bg: #4A1F2C;
+    --dot: #34466B; --btn: #263A60; --btn-border: #B8C4E0;
+    --c0: #3D2E22; --c1: #1B3D33; --c2: #1B3552; --block-line: #14213A;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%; background: var(--sky); color: var(--ink);
+    font-family: "Andika", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main { width: 100%; max-width: 680px; padding: 16px 12px 32px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  h1 { font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0; }
+  .tools { display: flex; gap: 8px; align-items: center; }
+  .streak { font-weight: 700; font-size: 1.05rem; }
+  .pill {
+    font: inherit; font-size: 1rem; background: var(--btn); color: var(--ink);
+    border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+
+  .track { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .track span { width: 13px; height: 13px; border-radius: 50%; background: var(--dot); }
+  .track span.done { background: var(--leaf); }
+  .track span.retry { background: var(--sun); }
+  .track span.now { outline: 3px solid var(--grape); outline-offset: 1px; }
+
+  .card { background: var(--card); border-radius: 26px; padding: 16px 10px 20px; }
+  .prompt { font-size: clamp(1.1rem, 4.4vw, 1.5rem); text-align: center; margin: 0 0 12px; min-height: 2.6em; font-weight: 700; }
+
+  /* the vertical problem */
+  .problem { display: grid; justify-content: center; column-gap: 4px; row-gap: 4px; margin: 0 auto; font-weight: 700; }
+  .problem .hd { text-align: center; font-size: .72rem; line-height: 1.1; border-radius: 10px 10px 0 0; padding: 4px 1px; display: grid; place-items: center; min-height: 2.4em; }
+  .problem .d { text-align: center; line-height: 1.25; }
+  .problem .d.x { color: var(--soft-ink); text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: var(--berry); }
+  .problem .op { text-align: center; align-self: center; }
+  .problem .bar { grid-column: 1 / -1; height: 5px; background: var(--ink); border-radius: 3px; margin: 2px 0 6px; }
+  .problem .col0 { background: var(--c0); } .problem .col1 { background: var(--c1); } .problem .col2 { background: var(--c2); }
+  .problem .hot { box-shadow: inset 0 0 0 3px var(--grape); }
+  .problem .per { margin-right: 6px; }
+  .problem .ansrow { padding: 4px 0; border-radius: 0 0 10px 10px; }
+
+  .box { margin: 0 auto; text-align: center; border: 3px dashed var(--soft-ink); border-radius: 10px; background: var(--card); color: var(--soft-ink); }
+  .box.reg { width: 86%; min-height: 1.9rem; font-size: 1.15rem; line-height: 1.6rem; margin-top: 4px; margin-bottom: 4px; }
+  .box.ans { width: 90%; line-height: 1.3; min-height: 1.4em; }
+  .box.active { border-style: solid; border-color: var(--grape); box-shadow: 0 0 0 3px var(--grape); color: var(--ink); }
+  .box.done { border-style: solid; border-color: var(--leaf); background: var(--leaf-bg); color: var(--leaf); }
+  .box.wait { opacity: .55; }
+  .reg-spacer { min-height: 1.9rem; margin: 4px 0; }
+  .legend { text-align: center; color: var(--soft-ink); font-size: .9rem; margin: 8px 0 0; }
+
+  /* keypad */
+  .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 460px; margin: 18px auto 0; }
+  .key {
+    font: inherit; font-weight: 700; font-size: clamp(1.6rem, 7vw, 2.2rem);
+    background: var(--btn); color: var(--ink); border: 3px solid var(--btn-border);
+    border-radius: 16px; padding: 8px 0; cursor: pointer;
+  }
+  .key.wide { grid-column: span 2; font-size: 1.3rem; }
+  .key.go { grid-column: span 3; background: var(--grape); color: var(--grape-ink); border-color: var(--grape); font-size: 1.4rem; }
+  .eraser { width: 1.7em; height: 1.1em; vertical-align: middle; margin-right: 4px; }
+  button:disabled { cursor: default; opacity: .6; }
+  button:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+
+  /* corrective feedback */
+  .fix { margin-top: 16px; padding: 14px 10px; border-radius: 20px; border: 3px dashed var(--sun); }
+  .fix-eq { text-align: center; font-weight: 700; font-size: clamp(1.3rem, 5.5vw, 1.8rem); margin: 0 0 8px; }
+  .fix-text { font-size: clamp(1.05rem, 4vw, 1.25rem); text-align: center; margin: 0 0 12px; }
+  .pics { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 14px; --u: 9px; }
+  .pics.c1 { --u: 7px; } .pics.c2 { --u: 3.6px; }
+  .grp { display: flex; flex-wrap: wrap; gap: calc(var(--u) * .7); align-items: flex-end; justify-content: center; }
+  .grp.five { display: grid; grid-template-columns: repeat(5, auto); gap: 5px; justify-content: center; }
+  .boxed { border: 3px dashed var(--grape); border-radius: 12px; padding: 8px 8px 4px; text-align: center; }
+  .plain { text-align: center; padding: 8px 4px 4px; }
+  .lab { font-size: .95rem; font-weight: 700; margin-top: 6px; }
+  .boxed .lab { color: var(--grape); }
+  .flat { width: calc(var(--u) * 10); height: calc(var(--u) * 10); }
+  .rod { width: var(--u); height: calc(var(--u) * 10); }
+  .unit { width: var(--u); height: var(--u); }
+  .tok { position: relative; display: inline-grid; }
+  .tok.out { opacity: .35; }
+  .tok.out::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top right, transparent 45%, var(--berry) 45%, var(--berry) 55%, transparent 55%); }
+  .tok.give { outline: 3px solid var(--grape); outline-offset: 2px; border-radius: 6px; }
+  .disk {
+    display: inline-grid; place-items: center; min-width: 2.3em; height: 2.3em; padding: 0 .35em;
+    border-radius: 1.15em; border: 2px solid var(--block-line); color: #1F2A44;
+    font-size: .75rem; font-weight: 700;
+  }
+  .disk.p0 { background: var(--unit); } .disk.p1 { background: var(--rod); } .disk.p2 { background: var(--flat); }
+
+  .feedback { min-height: 1.6em; margin-top: 14px; text-align: center; font-size: clamp(1.1rem, 4vw, 1.4rem); }
+  .feedback.good { color: var(--leaf); font-weight: 700; }
+  .feedback.try { color: var(--berry); }
+  .next {
+    font: inherit; font-weight: 700; font-size: 1.4rem; display: block; margin: 10px auto 0;
+    background: var(--grape); color: var(--grape-ink); border: none; border-radius: 999px; padding: 12px 36px; cursor: pointer;
+  }
+  .hidden { display: none !important; }
+  .end { text-align: center; padding: 30px 10px; }
+  .end .big { font-size: clamp(3rem, 14vw, 5rem); margin: 0; }
+  .end p { font-size: 1.4rem; }
+  .home-link { display: inline-block; font: inherit; font-weight: 700; color: var(--ink); text-decoration: none; background: var(--btn); border: 2px solid var(--btn-border); border-radius: 999px; padding: 6px 14px; margin-bottom: 10px; min-height: 40px; }
+  .home-link:focus-visible { outline: 4px solid var(--grape); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="home-link" href="../math.html"><span aria-hidden="true">←</span> Math Games</a>
+  <header>
+    <h1>__H1__</h1>
+    <div class="tools">
+      <span class="streak" id="streak" aria-live="polite"></span>
+      <button type="button" class="pill" id="soundBtn" aria-pressed="true">🔊 Sound on</button>
+    </div>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true"></div>
+
+  <section class="card" id="game">
+    <p class="prompt" id="prompt" aria-live="polite"></p>
+    <div class="problem" id="problem" role="group"></div>
+    <p class="legend" id="legend"></p>
+    <div id="keypad"></div>
+    <div class="fix hidden" id="fix"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <button type="button" class="next hidden" id="nextBtn">Next</button>
+  </section>
+
+  <section class="card end hidden" id="end">
+    <p class="big">__EMOJI__</p>
+    <h2 id="endTitle">All done!</h2>
+    <p id="score"></p>
+    <button type="button" class="next" id="againBtn">Play again</button>
+  </section>
+</main>
+
+<script>
+(function () {
+  // ---- Settings ----
+  // OP: "+" or "-".  MODEL: "blocks" (base-ten blocks) or "disks" (place-value disks) in the feedback.
+  // STAGES: problems get harder in order. Each stage:
+  //   n: how many problems
+  //   a, b: [min, max] digits in the top and bottom numbers
+  //   reg: [min, max] how many columns regroup
+  //   cols: exact columns that must regroup (0 = ones, 1 = tens, ...), overrides reg
+  //   zeros: true = the top number has a 0 inside it (for subtraction, regrouping must cross that 0)
+  //   special: "toPower" = the sum is exactly 10^k; "fromPower" = subtract from 10^k
+  //   maxTop: largest allowed top number (subtraction) or sum (addition)
+  const CONFIG = __CONFIG__;
+  const { OP, MODEL, STAGES } = CONFIG;
+  const TOTAL = STAGES.reduce((s, st) => s + st.n, 0);
+
+  const PLACES = ["ones", "tens", "hundreds", "thousands", "ten thousands", "hundred thousands", "millions"];
+  const ONE = ["one", "ten", "hundred", "thousand", "ten thousand", "hundred thousand", "million"];
+  const ABBR = ["O", "T", "H", "Th", "TTh", "HTh", "M"];
+  const VAL = ["1", "10", "100", "1,000", "10,000", "100,000", "1,000,000"];
+
+  const $ = (id) => document.getElementById(id);
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const fmt = (n) => n.toLocaleString("en-US");
+  const dig = (n, i) => Math.floor(n / 10 ** i) % 10;
+  const len = (n) => String(n).length;
+  const plural = (k, c) => `${k} ${k === 1 ? ONE[c] : PLACES[c]}`;
+  let soundOn = true;
+  function say(text) {
+    if (!soundOn || !("speechSynthesis" in window)) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 0.9; speechSynthesis.speak(u); } catch (e) {}
+  }
+
+  // ---- Problem generation ----
+  function randNum(digits, leadMax) {
+    let n = rnd(1, leadMax);
+    for (let i = 1; i < digits; i++) n = n * 10 + rnd(0, 9);
+    return n;
+  }
+  function addRegroupCols(a, b) {
+    const cols = []; let c = 0, carry = 0;
+    while (10 ** c <= Math.max(a, b)) { const t = dig(a, c) + dig(b, c) + carry; carry = t >= 10 ? 1 : 0; if (carry) cols.push(c); c++; }
+    return cols;
+  }
+  function subInfo(a, b) {
+    const cols = []; let crossesZero = false;
+    const cur = String(a).split("").reverse().map(Number);
+    for (let c = 0; c < cur.length; c++) {
+      if (cur[c] < dig(b, c)) {
+        cols.push(c);
+        let L = c + 1; while (cur[L] === 0) { L++; crossesZero = true; }
+        cur[L]--; for (let k = L - 1; k > c; k--) cur[k] = 9; cur[c] += 10;
+      }
+    }
+    return { cols, crossesZero };
+  }
+  function makeProblem(st) {
+    for (let tries = 0; tries < 20000; tries++) {
+      let a, b;
+      if (st.special === "toPower") {
+        a = rnd(10 ** (st.k - 1) + 1, 10 ** st.k - 1); if (a % 10 === 0) continue;
+        b = 10 ** st.k - a; if (len(b) < st.k - 1) continue;
+        return { a, b };
+      }
+      if (st.special === "fromPower") {
+        a = 10 ** st.k; b = rnd(10 ** (st.k - 2), 10 ** st.k - 1); if (b % 10 === 0) continue;
+        return { a, b };
+      }
+      const aLen = rnd(st.a[0], st.a[1]), bLen = rnd(st.b[0], Math.min(st.b[1], aLen));
+      a = randNum(aLen, OP === "+" ? 8 : 9);
+      b = randNum(bLen, OP === "+" ? 8 : 9);
+      if (st.zeros) {
+        const pos = rnd(1, aLen - 2);
+        const s = String(a).split(""); s[aLen - 1 - pos] = "0";
+        if (aLen > 4 && Math.random() < 0.5) { const p2 = rnd(1, aLen - 2); s[aLen - 1 - p2] = "0"; }
+        a = Number(s.join(""));
+      }
+      if (OP === "+") {
+        if (a + b > st.maxTop) continue;
+        const cols = addRegroupCols(a, b);
+        if (st.cols ? cols.join() !== st.cols.join() : (cols.length < st.reg[0] || cols.length > st.reg[1])) continue;
+      } else {
+        if (a <= b || a > st.maxTop) continue;
+        const { cols, crossesZero } = subInfo(a, b);
+        if (st.cols ? cols.join() !== st.cols.join() : (cols.length < st.reg[0] || cols.length > st.reg[1])) continue;
+        if (st.zeros && !crossesZero) continue;
+      }
+      return { a, b };
+    }
+    throw new Error("Could not make a problem for stage " + JSON.stringify(st));
+  }
+
+  // ---- Steps: the boxes a student fills, in order ----
+  function addSteps(a, b) {
+    const steps = []; const n = Math.max(len(a), len(b)); let carry = 0;
+    for (let c = 0; c < n; c++) {
+      const total = dig(a, c) + dig(b, c) + carry;
+      steps.push({ kind: "ans", col: c, val: total % 10, x: dig(a, c), y: dig(b, c), cin: carry, total });
+      carry = total >= 10 ? 1 : 0;
+      if (carry && c + 1 < n) steps.push({ kind: "reg", why: "carry", col: c + 1, val: 1, fromCol: c, total });
+    }
+    if (carry) steps.push({ kind: "ans", col: n, val: 1, x: 0, y: 0, cin: 1, total: 1, last: true });
+    return steps;
+  }
+  function subSteps(a, b) {
+    const steps = []; const cur = String(a).split("").reverse().map(Number);
+    const resLen = len(a - b);
+    for (let c = 0; c < cur.length; c++) {
+      const y = dig(b, c);
+      if (cur[c] < y) {
+        let L = c + 1; while (cur[L] === 0) L++;
+        steps.push({ kind: "reg", why: "lend", col: L, val: cur[L] - 1, before: cur[L], need: c, needTop: cur[c], needBot: y, viaZero: L > c + 1 });
+        cur[L]--;
+        for (let k = L - 1; k > c; k--) { steps.push({ kind: "reg", why: "pass", col: k, val: 9 }); cur[k] = 9; }
+        steps.push({ kind: "reg", why: "receive", col: c, val: cur[c] + 10, before: cur[c] });
+        cur[c] += 10;
+      }
+      if (c < resLen) steps.push({ kind: "ans", col: c, val: cur[c] - y, x: cur[c], y });
+    }
+    return steps;
+  }
+
+  function buildRounds() {
+    const all = [];
+    STAGES.forEach((st) => { for (let i = 0; i < st.n; i++) { const p = makeProblem(st); all.push({ ...p, res: OP === "+" ? p.a + p.b : p.a - p.b, steps: OP === "+" ? addSteps(p.a, p.b) : subSteps(p.a, p.b) }); } });
+    return all;
+  }
+
+  // ---- Pictures for feedback ----
+  const gridPath = (() => { let d = ""; for (let i = 10; i < 100; i += 10) d += `M${i} 0V100M0 ${i}H100`; return d; })();
+  const rodPath = (() => { let d = ""; for (let i = 10; i < 100; i += 10) d += `M0 ${i}H10`; return d; })();
+  const BLOCK = [
+    `<svg class="unit" viewBox="0 0 10 10" aria-hidden="true"><rect width="10" height="10" style="fill:var(--unit);stroke:var(--block-line);stroke-width:1.2"/></svg>`,
+    `<svg class="rod" viewBox="0 0 10 100" preserveAspectRatio="none" aria-hidden="true"><rect width="10" height="100" style="fill:var(--rod);stroke:var(--block-line);stroke-width:1.2"/><path d="${rodPath}" style="stroke:var(--block-line);stroke-width:.8;opacity:.55"/></svg>`,
+    `<svg class="flat" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" style="fill:var(--flat);stroke:var(--block-line);stroke-width:2"/><path d="${gridPath}" style="stroke:var(--block-line);stroke-width:.8;opacity:.55"/></svg>`
+  ];
+  const useBlocks = (c) => MODEL === "blocks" && c <= 2;
+  function piece(c) { return useBlocks(c) ? BLOCK[c] : `<span class="disk p${c % 3}">${VAL[c]}</span>`; }
+  // marks: array of "" | "out" | "give" per token
+  function tokens(c, k, marks) {
+    let h = "";
+    for (let i = 0; i < k; i++) h += `<span class="tok ${marks && marks[i] ? marks[i] : ""}">${piece(c)}</span>`;
+    const five = !useBlocks(c) || c === 0;
+    return `<div class="grp${five ? " five" : ""}">${h}</div>`;
+  }
+  const picWrap = (c, inner) => `<div class="pics${useBlocks(c) ? " c" + c : ""}">${inner}</div>`;
+  const group = (cls, inner, label) => `<div class="${cls}">${inner}<div class="lab">${label}</div></div>`;
+
+  // ---- State ----
+  let rounds = [], index = 0, firstTry = 0, streak = 0, missed = false, solved = false;
+  let stepIdx = 0, typed = "", missedStep = false, entered = {};
+
+  function drawTrack() { $("track").innerHTML = rounds.map((r, i) => `<span class="${r.result || ""} ${i === index ? "now" : ""}"></span>`).join(""); }
+  function drawStreak() { $("streak").textContent = streak >= 2 ? `🔥 ${streak} in a row` : ""; }
+  function setFeedback(t, cls) { const f = $("feedback"); f.textContent = t; f.className = "feedback" + (cls ? " " + cls : ""); }
+
+  function drawProblem() {
+    const r = rounds[index], steps = r.steps;
+    const cur = solved ? null : steps[stepIdx];
+    const nCols = Math.max(len(r.a), len(r.b), len(r.res), ...steps.map((s) => s.col + 1));
+    const wide = nCols > 4;
+    const order = [...Array(nCols)].map((_, i) => nCols - 1 - i);
+    const p = $("problem");
+    p.style.gridTemplateColumns = `${wide ? "1.5rem" : "2rem"} repeat(${nCols}, minmax(0, ${wide ? "3.3rem" : "4.4rem"}))`;
+    const dSize = wide ? "clamp(1.4rem, 6.4vw, 2.4rem)" : "clamp(2.1rem, 9.5vw, 2.9rem)";
+    const cls = (c) => `col${c % 3}${cur && cur.col === c ? " hot" : ""}${wide && c === 3 ? " per" : ""}`;
+    const regVal = (c) => entered[`reg${c}`];
+    let h = `<div></div>` + order.map((c) => `<div class="hd ${cls(c)}" title="${PLACES[c]}">${wide ? ABBR[c] : PLACES[c]}</div>`).join("");
+    // regroup row
+    h += `<div></div>` + order.map((c) => {
+      const has = steps.some((s) => s.kind === "reg" && s.col === c);
+      let inner = `<div class="reg-spacer"></div>`;
+      if (has) {
+        const activeHere = cur && cur.kind === "reg" && cur.col === c;
+        if (activeHere) inner = `<div class="box reg active" id="display">${typed}</div>`;
+        else if (regVal(c) !== undefined) inner = `<div class="box reg done">${regVal(c)}</div>`;
+        else inner = `<div class="box reg wait"></div>`;
+      }
+      return `<div class="${cls(c)}">${inner}</div>`;
+    }).join("");
+    const digitCell = (n, c, top) => {
+      const show = c < len(n);
+      const crossed = top && OP === "-" && regVal(c) !== undefined;
+      return `<div class="d ${cls(c)}${crossed ? " x" : ""}" style="font-size:${dSize}">${show ? dig(n, c) : ""}</div>`;
+    };
+    h += `<div></div>` + order.map((c) => digitCell(r.a, c, true)).join("");
+    h += `<div class="op" style="font-size:${dSize}">${OP === "+" ? "+" : "−"}</div>` + order.map((c) => digitCell(r.b, c, false)).join("");
+    h += `<div class="bar"></div>`;
+    h += `<div></div>` + order.map((c) => {
+      const has = steps.some((s) => s.kind === "ans" && s.col === c);
+      let inner = "";
+      if (has) {
+        const activeHere = cur && cur.kind === "ans" && cur.col === c;
+        if (activeHere) inner = `<div class="box ans active" id="display" style="font-size:${dSize}">${typed}</div>`;
+        else if (entered[`ans${c}`] !== undefined) inner = `<div class="box ans done" style="font-size:${dSize}">${entered[`ans${c}`]}</div>`;
+        else inner = `<div class="box ans wait" style="font-size:${dSize}">&nbsp;</div>`;
+      }
+      return `<div class="ansrow ${cls(c)}">${inner}</div>`;
+    }).join("");
+    p.innerHTML = h;
+    p.setAttribute("aria-label", `${fmt(r.a)} ${OP === "+" ? "plus" : "minus"} ${fmt(r.b)}`);
+    $("legend").textContent = wide ? order.map((c) => `${ABBR[c]} = ${PLACES[c]}`).join(", ") : "";
+  }
+
+  // "0 tens" or "0 hundreds and 0 thousands": the empty places a regroup has to pass through
+  function zeroPlaces(s) {
+    const z = []; for (let k = s.need + 1; k < s.col; k++) z.push(`0 ${PLACES[k]}`);
+    return z.length > 1 ? z.slice(0, -1).join(", ") + " and " + z[z.length - 1] : z[0];
+  }
+
+  function promptFor(s) {
+    if (!s) return "";
+    if (s.kind === "ans") {
+      if (s.last) return `Write the ${PLACES[s.col]}.`;
+      return OP === "+" ? `Add the ${PLACES[s.col]}.` : `Subtract the ${PLACES[s.col]}.`;
+    }
+    if (s.why === "carry") return `Regroup: how many ${PLACES[s.col]} move to the ${PLACES[s.col]} column?`;
+    if (s.why === "lend") {
+      const lead = `${s.needTop} − ${s.needBot}? Not enough ${PLACES[s.need]}.`;
+      return s.viaZero
+        ? `${lead} There are ${zeroPlaces(s)}, so regroup 1 ${ONE[s.col]}. How many ${PLACES[s.col]} are left?`
+        : `${lead} Regroup 1 ${ONE[s.col]}. How many ${PLACES[s.col]} are left?`;
+    }
+    if (s.why === "pass") return `The ${PLACES[s.col]} get 10, then give 1 away. How many ${PLACES[s.col]} now?`;
+    return `The ${PLACES[s.col]} get 10 more. How many ${PLACES[s.col]} now?`;
+  }
+
+  const ERASER = `<svg class="eraser" viewBox="0 0 52 32" aria-hidden="true"><g transform="rotate(-18 26 16)"><rect x="4" y="8" width="44" height="17" rx="4" fill="#F7A1B8" stroke="#1F2A44" stroke-width="2.5"/><rect x="4" y="8" width="15" height="17" rx="4" fill="#5B8DEF" stroke="#1F2A44" stroke-width="2.5"/></g></svg>`;
+  function drawKeypad() {
+    const keys = [1,2,3,4,5,6,7,8,9,0].map((d) => `<button type="button" class="key" data-d="${d}">${d}</button>`).join("");
+    $("keypad").innerHTML = `<div class="keypad">${keys}<button type="button" class="key wide" data-act="del" aria-label="Erase">${ERASER}Erase</button><button type="button" class="key go" data-act="check">Check</button></div>`;
+  }
+
+  function showRound() {
+    const r = rounds[index];
+    missed = false; solved = false; stepIdx = 0; typed = ""; missedStep = false; entered = {};
+    $("fix").classList.add("hidden"); $("fix").innerHTML = "";
+    $("nextBtn").classList.add("hidden");
+    setFeedback("");
+    drawKeypad(); drawProblem();
+    $("prompt").textContent = promptFor(r.steps[0]);
+    drawTrack(); drawStreak();
+    say(`${fmt(r.a)} ${OP === "+" ? "plus" : "minus"} ${fmt(r.b)}. Start with the ones.`);
+  }
+
+  // ---- Corrective feedback ----
+  function feedbackFor(s, guess) {
+    const g = Number(guess), c = s.col;
+    let eq = "", text = "", pics = "";
+    if (OP === "+") {
+      if (s.kind === "reg") {
+        text = `You made ${plural(s.total, s.fromCol)}. 10 ${PLACES[s.fromCol]} make 1 ${ONE[c]}, so 1 ${ONE[c]} moves to the ${PLACES[c]} column. Write 1.`;
+        pics = picWrap(s.fromCol, group("boxed", tokens(s.fromCol, 10), `10 ${PLACES[s.fromCol]} = 1 ${ONE[c]}`) + group("plain", tokens(s.fromCol, s.total - 10), `${plural(s.total - 10, s.fromCol)} left`));
+      } else if (s.last) {
+        text = `You regrouped 10 ${PLACES[c - 1]} into 1 ${ONE[c]}. Write 1 in the ${PLACES[c]} place.`;
+      } else {
+        const parts = [s.x, s.y].concat(s.cin ? [s.cin] : []);
+        eq = `${parts.join(" + ")} = ${s.total}`;
+        if (guess.length > 1 && g === s.total && s.total >= 10) text = `You wrote the whole ${s.total}, but only one digit fits in the ${PLACES[c]} place. ${s.total} ${PLACES[c]} = 1 ${ONE[c + 1]} and ${plural(s.total - 10, c)}. Write ${s.val}. The 1 ${ONE[c + 1]} moves next door.`;
+        else if (s.cin && g === (s.x + s.y) % 10) text = `Don't forget the 1 you regrouped at the top! ${eq}. Write ${s.val}.`;
+        else if (s.total >= 10) text = `${eq} ${PLACES[c]}. That's 1 ${ONE[c + 1]} and ${plural(s.total - 10, c)}. Write ${s.val}.`;
+        else text = `${eq} ${PLACES[c]}. Write ${s.val}.`;
+        pics = s.total >= 10
+          ? picWrap(c, group("boxed", tokens(c, 10), `10 ${PLACES[c]} = 1 ${ONE[c + 1]}`) + group("plain", tokens(c, s.total - 10), `${plural(s.total - 10, c)} left`))
+          : picWrap(c, group("plain", tokens(c, s.total), plural(s.total, c)));
+      }
+    } else {
+      if (s.kind === "ans") {
+        eq = `${s.x} − ${s.y} = ${s.val}`;
+        if (g === s.y - s.x && s.y > s.x) text = `Careful: always take the bottom number away from the top. ${eq}.`;
+        else text = `Start with ${plural(s.x, c)} and take away ${s.y}. ${eq}. Write ${s.val}.`;
+        const marks = [...Array(s.x)].map((_, i) => (i >= s.x - s.y ? "out" : ""));
+        pics = picWrap(c, group("plain", tokens(c, s.x, marks), `${s.x} take away ${s.y} leaves ${s.val}`));
+      } else if (s.why === "lend") {
+        if (g === s.before + 1) text = `Regrouping gives 1 ${ONE[c]} away, so the ${PLACES[c]} go down, not up. `;
+        text += s.viaZero
+          ? `You need more ${PLACES[s.need]}, but there are ${zeroPlaces(s)}. Go to the ${PLACES[c]}: ${s.before} ${PLACES[c]} give 1 away, leaving ${s.before - 1}. Write ${s.val}.`
+          : `You can't take ${s.needBot} from ${s.needTop}, so regroup. ${s.before} ${PLACES[c]} give 1 ${ONE[c]} away, leaving ${s.before - 1}. Write ${s.val}.`;
+        const marks = [...Array(s.before)].map((_, i) => (i === s.before - 1 ? "give" : ""));
+        pics = picWrap(c, group("plain", tokens(c, s.before, marks), `1 ${ONE[c]} = 10 ${PLACES[c - 1]}`));
+      } else if (s.why === "pass") {
+        text = (g === 10 ? "Close! " : "") + `The ${PLACES[c]} had 0. They got 10 from the regroup, then gave 1 to the ${PLACES[c - 1]}. 10 − 1 = 9. Write 9.`;
+        const marks = [...Array(10)].map((_, i) => (i === 9 ? "give" : ""));
+        pics = picWrap(c, group("plain", tokens(c, 10, marks), `10 ${PLACES[c]}, 1 given away`));
+      } else {
+        eq = `${s.before} + 10 = ${s.val}`;
+        if (g === 10) text = `Don't forget the ${plural(s.before, c)} already there. ${eq}. Write ${s.val}.`;
+        else if (g === s.before + 1) text = `You traded 1 ${ONE[c + 1]}, and that is 10 ${PLACES[c]}, not 1. ${eq}. Write ${s.val}.`;
+        else text = `You had ${plural(s.before, c)}. The regroup adds 10 more. ${eq}. Write ${s.val}.`;
+        pics = picWrap(c, (s.before ? group("plain", tokens(c, s.before), `${plural(s.before, c)} already there`) : "") + group("boxed", tokens(c, 10), `10 new ${PLACES[c]}`));
+      }
+    }
+    return { eq, text, pics };
+  }
+
+  function showFix(s, guess) {
+    const { eq, text, pics } = feedbackFor(s, guess);
+    $("fix").innerHTML = (eq ? `<p class="fix-eq">${eq}</p>` : "") + `<p class="fix-text">${text}</p>` + pics;
+    $("fix").classList.remove("hidden");
+    say(text.replace(/\+/g, " plus ").replace(/−/g, " minus ").replace(/=/g, " equals "));
+  }
+
+  // ---- Checking ----
+  function check() {
+    const r = rounds[index];
+    if (solved || !typed) return;
+    const s = r.steps[stepIdx];
+    if (typed === String(s.val)) {
+      entered[`${s.kind}${s.col}`] = s.val;
+      typed = ""; missedStep = false;
+      $("fix").classList.add("hidden");
+      stepIdx++;
+      if (stepIdx >= r.steps.length) return win();
+      $("prompt").textContent = promptFor(r.steps[stepIdx]);
+      setFeedback("Yes!", "good");
+      drawProblem();
+      return;
+    }
+    const guess = typed;
+    typed = "";
+    drawProblem();
+    if (missedStep) { setFeedback("Not yet. Look at the help below and try again.", "try"); say("Not yet. Try again."); return; }
+    missed = true; missedStep = true;
+    setFeedback("Not quite. Look at the help, then try again.");
+    showFix(s, guess);
+  }
+
+  function win() {
+    const r = rounds[index];
+    solved = true;
+    if (!missed) { firstTry++; streak++; r.result = "done"; } else { streak = 0; r.result = "retry"; }
+    drawProblem();
+    $("prompt").textContent = `${fmt(r.a)} ${OP === "+" ? "+" : "−"} ${fmt(r.b)} = ${fmt(r.res)}`;
+    const cheer = missed ? "Yes, now you've got it!" : ["Yes!", "You got it!", "Great work!", "That's right!", "Super!"][rnd(0, 4)];
+    setFeedback(cheer, "good");
+    say(`${cheer} ${fmt(r.a)} ${OP === "+" ? "plus" : "minus"} ${fmt(r.b)} equals ${fmt(r.res)}.`);
+    $("keypad").querySelectorAll("button").forEach((b) => (b.disabled = true));
+    $("nextBtn").classList.remove("hidden"); $("nextBtn").focus();
+    drawTrack(); drawStreak();
+  }
+
+  function updateDisplay() { const d = $("display"); if (d) d.textContent = typed; }
+  function addDigit(d) { if (typed.length < 2) { typed += d; updateDisplay(); } }
+
+  // ---- Events ----
+  $("keypad").addEventListener("click", (e) => {
+    const key = e.target.closest(".key");
+    if (!key || solved) return;
+    if (key.dataset.d !== undefined) addDigit(key.dataset.d);
+    else if (key.dataset.act === "del") { typed = typed.slice(0, -1); updateDisplay(); }
+    else if (key.dataset.act === "check") check();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.id === "soundBtn") return;
+    if (solved) { if (e.key === "Enter" && !$("nextBtn").classList.contains("hidden")) { e.preventDefault(); $("nextBtn").click(); } return; }
+    if (/^[0-9]$/.test(e.key)) addDigit(e.key);
+    else if (e.key === "Backspace") { typed = typed.slice(0, -1); updateDisplay(); }
+    else if (e.key === "Enter") { e.preventDefault(); check(); }
+  });
+  $("nextBtn").addEventListener("click", () => {
+    index++;
+    if (index >= TOTAL) return finish();
+    showRound(); window.scrollTo({ top: 0 });
+  });
+  $("againBtn").addEventListener("click", start);
+  $("soundBtn").addEventListener("click", (e) => {
+    soundOn = !soundOn;
+    e.currentTarget.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+    e.currentTarget.setAttribute("aria-pressed", String(soundOn));
+    if (!soundOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  function finish() {
+    $("game").classList.add("hidden"); $("end").classList.remove("hidden"); $("nextBtn").classList.add("hidden");
+    index = TOTAL; drawTrack();
+    $("endTitle").textContent = `You solved all ${TOTAL} problems!`;
+    $("score").textContent = `${firstTry} out of ${TOTAL} with no mistakes.`;
+    say(`You solved all ${TOTAL} problems!`);
+  }
+  function start() {
+    rounds = buildRounds(); index = 0; firstTry = 0; streak = 0;
+    $("end").classList.add("hidden"); $("game").classList.remove("hidden");
+    showRound();
+  }
+  start();
+})();
+</script>
+</body>
+</html>
