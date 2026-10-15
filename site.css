@@ -125,6 +125,7 @@ a { color: inherit; }
 .lv1 .level-tag { background: var(--leaf-bg); color: var(--leaf); }
 .lv2 .level-tag { background: var(--sea-bg); color: var(--sea); }
 .lv3 .level-tag { background: var(--grape-bg); color: var(--grape); }
+.lv4 .level-tag { background: var(--coral-bg); color: var(--coral); }
 
 .games { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: 1fr; }
 @media (min-width: 600px) { .games { grid-template-columns: repeat(2, 1fr); } }

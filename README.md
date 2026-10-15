@@ -16,6 +16,7 @@ There is no build step, no framework, and no runtime dependencies. Each game is 
 | `site.css` | Shared styles for the three pages above |
 | `filters.js` | Skill filter buttons on the Math page |
 | `games/*.html` | The games (each links back to the Math page) |
+| `src/*.template.html`, `scripts/build-*.py` | Templates and build scripts for the five newer games |
 
 ## Math games
 
@@ -26,9 +27,14 @@ There is no build step, no framework, and no runtime dependencies. Each game is 
 | 1 (K–1) | `games/make-5-number-bonds.html` | Missing part of 5 + addition/subtraction sentences | 20 | Five-frame, known part blue, missing part orange |
 | 2 (K–1) | `games/count-to-20.html` | Count 1–20 in two ten-frames | 40 | Full frame = 10, then count on |
 | 2 (1) | `games/make-10-number-bonds.html` | Missing part of 10 + addition/subtraction sentences | 30 | Ten-frame, known part blue, missing part orange |
+| 2 (1) | `games/addition-facts-within-12.html` | Single-digit addition facts, sums to 12 | 30 | Strategy picture: count on, doubles picture, doubles plus 1, or make 10 |
+| 2 (1–2) | `games/addition-facts-within-18.html` | Single-digit addition facts, sums to 18 | 30 | Same strategies, weighted to sums 10–18 |
 | 2 (1–2) | `games/numbers-to-120.html` | Write numbers, read base-ten blocks, sequence, place value to 120 | 30 | Place-value chart with blocks; catches "10012" for 112 |
 | 3 (2–3) | `games/count-by-10s-and-100s.html` | Skip-count by 10s and 100s within 1,000 | 30 | Before/after place-value chart; regrouping explained |
 | 3 (2–4) | `games/add-within-1000.html` | Multi-digit addition with regrouping | 30 | Base-ten blocks grouping 10 into the next place |
+| 3 (2–4) | `games/subtract-within-1000.html` | Multi-digit subtraction with regrouping, including across zeros | 30 | Base-ten blocks; crossed-out blocks for take-away; catches "smaller from larger" |
+| 4 (4) | `games/add-within-1-million.html` | Addition within 1,000,000 | 20 | Place-value disks grouping 10 into the next place |
+| 4 (4) | `games/subtract-within-1-million.html` | Subtraction within 1,000,000, including across zeros | 20 | Place-value disks; regrouping through zeros explained step by step |
 
 ## Run locally
 
@@ -63,8 +69,20 @@ All games share the same structure, so a fix in one usually applies to the other
 | ten-frame-subitizing | `FLASH_MS`, `REPEATS` | How long dots show in quick-look mode; rounds per number |
 | make-5 / make-10 | `KNOWN_LIST` | Which known parts appear and how often |
 | numbers-to-120 | `BIG_COUNT`, `SMALL_COUNT`; `kinds` in `buildRounds()` | How many 100–120 vs. 20–99 numbers; mix of round types |
+| addition-facts-within-12 / 18 | `STAGES` | Which strategies each stage practices, and sum ranges |
 | count-by-10s-and-100s | `STAGES` | Difficulty stages: direction, crossing a hundred, blanks |
-| add-within-1000 | `STAGES` | Difficulty stages: which columns regroup, special cases |
+| add-within-1000, subtract-within-1000, add/subtract-within-1-million | `STAGES` | Difficulty stages: digits, which columns regroup, zeros, special cases |
+
+### Games built from templates
+
+`subtract-within-1000`, `add-within-1-million`, and `subtract-within-1-million` are built from `src/operation-game.template.html` by `scripts/build-operations.py`. The two addition-facts games are built from `src/facts-game.template.html` by `scripts/build-facts.py`. Each game's settings live in its build script. To change one of these games, edit the template or the settings, then run from the repo root:
+
+```bash
+python3 scripts/build-operations.py
+python3 scripts/build-facts.py
+```
+
+The templates already include the site's Content-Security-Policy, the "← Math Games" link, and the review fixes, so rebuilt games keep them. `add-within-1000.html` predates the templates and is maintained by hand.
 
 ## Security and privacy
 
